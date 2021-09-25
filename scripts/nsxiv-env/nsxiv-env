@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+NSXIV_OPTS="${NSXIV_OPTS:-"-a -q"}"
+# set default args here    ^   ^  inside the quotes
+
+while getopts abcfhiopqrtvZA:e:G:g:N:n:S:s:T:z: opt; do
+  case $opt in
+    [a-z]|[A-Z]) NSXIV_OPTS="$NSXIV_OPTS -$opt $OPTARG" ;;
+    *) exit 1 ;;
+  esac
+done
+shift "$((OPTIND-1))"
+
+nsxiv $NSXIV_OPTS -- "$@"
