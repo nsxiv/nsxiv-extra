@@ -21,6 +21,7 @@ Here are some examples scripts which add new and commonly requested functionalit
 | [nsxiv-env](scripts/nsxiv-env) | Pass arguments to nsxiv using environment variables. |
 | [nsxiv-url](scripts/nsxiv-url) | Open remote files. |
 | [nsxiv-rifle](scripts/nsxiv-rifle) | Open all images in a directory. |
+| [nsxiv-saver](scripts/nsxiv-saver) | Use nsxiv as a xsecurelock screensaver. |
 
 ## Tips and Tricks
 
