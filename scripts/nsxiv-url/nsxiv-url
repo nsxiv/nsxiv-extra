@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+
+cache_dir="/tmp/nsxiv"
+
+die() {
+  [ -n "$1" ] && printf '%s\n' "$*" >&2;
+  exit 1
+}
+
+cleanup() {
+  rm -f -- "$cache_dir"/*
+}
+
+get_image() (
+  cd "$cache_dir" && curl -sSLO "$1"
+)
+
+### main ###
+
+while getopts abcfhiopqrtvZA:e:G:g:N:S:s:z: opt; do
+  case "$opt" in
+    [a-z]|[A-Z]) args="$args -$opt $OPTARG" ;;
+    *) die ;;
+  esac
+done
+shift "$((OPTIND-1))"
+[ -z "$1" ] && die "No arguments given"
+
+trap cleanup EXIT
+[ -d "$cache_dir" ] || mkdir -p -- "$cache_dir" || die
+while [ -n "$1" ]; do
+  case "$1" in
+    *://*.*) get_image "$1" ;;
+    *) echo "Invalid url: $1" >&2 ;;
+  esac
+  shift
+done
+
+[ "$(find "$cache_dir" -type f -print | wc -l)" -ne 0 ] &&
+  nsxiv -p $args "$cache_dir"
