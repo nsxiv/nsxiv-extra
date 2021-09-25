@@ -10,6 +10,7 @@ stabilized PRs will be opened.
 
 | Name | Comments |
 | :--  | :--      |
+| [dmenu-mode](patches/dmenu-mode) | Add dmenu mode to nsxiv |
 
 ## User scripts
 

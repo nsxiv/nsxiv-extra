@@ -1,0 +1,122 @@
+From 4bed969684b07dcb890ffd860a7aaac702a3991c Mon Sep 17 00:00:00 2001
+From: NRK <nrk@disroot.org>
+Date: Fri, 17 Sep 2021 04:04:15 +0600
+Subject: [PATCH 2/2] new flag -O for dmenu mode
+
+---
+ commands.c | 4 ++++
+ main.c     | 4 ++++
+ nsxiv.1    | 6 ++++++
+ nsxiv.h    | 1 +
+ options.c  | 8 ++++++--
+ 5 files changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/commands.c b/commands.c
+index b6f9875..f5b56cf 100644
+--- a/commands.c
++++ b/commands.c
+@@ -207,6 +207,8 @@ bool cg_reverse_marks(arg_t _)
+ {
+ 	int i;
+ 
++	if (options->dmenu)
++		return false;
+ 	for (i = 0; i < filecnt; i++) {
+ 		files[i].flags ^= FF_MARK;
+ 		markcnt += files[i].flags & FF_MARK ? 1 : -1;
+@@ -230,6 +232,8 @@ bool cg_unmark_all(arg_t _)
+ {
+ 	int i;
+ 
++	if (options->dmenu)
++		return false;
+ 	for (i = 0; i < filecnt; i++)
+ 		files[i].flags &= ~FF_MARK;
+ 	markcnt = 0;
+diff --git a/main.c b/main.c
+index 52062ca..1637e8f 100644
+--- a/main.c
++++ b/main.c
+@@ -325,6 +325,10 @@ void load_image(int new)
+ bool mark_image(int n, bool on)
+ {
+ 	markidx = n;
++	if (options->dmenu) {
++		on = true;
++		printf("%s\n", files[n].name);
++	}
+ 	if (!!(files[n].flags & FF_MARK) != on) {
+ 		files[n].flags ^= FF_MARK;
+ 		markcnt += on ? 1 : -1;
+diff --git a/nsxiv.1 b/nsxiv.1
+index e068784..d008ff9 100644
+--- a/nsxiv.1
++++ b/nsxiv.1
+@@ -94,6 +94,12 @@ with
+ .B \-i
+ nsxiv can be used as a visual filter/pipe.
+ .TP
++.B \-O
++Activate dmenu mode. Marking an image will immediately output it's name to
++standard output. Images cannot be unmarked in this mode. Reverse marking
++.RB ( Ctrl\-m )
++is also disabled.
++.TP
+ .B \-p
+ Enable private mode, in which nsxiv does not write any cache or temporary files.
+ .TP
+diff --git a/nsxiv.h b/nsxiv.h
+index 0a3bff1..253ba65 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -267,6 +267,7 @@ struct opt {
+ 	/* file list: */
+ 	char **filenames;
+ 	bool from_stdin;
++	bool dmenu;
+ 	bool to_stdout;
+ 	bool recursive;
+ 	int filecnt;
+diff --git a/options.c b/options.c
+index 31cfa39..8d624b9 100644
+--- a/options.c
++++ b/options.c
+@@ -31,7 +31,7 @@ const opt_t *options = (const opt_t*) &_options;
+ 
+ void print_usage(void)
+ {
+-	printf("usage: nsxiv [-abcfhiopqrtvZ] [-A FRAMERATE] [-e WID] [-G GAMMA] "
++	printf("usage: nsxiv [-abcfhiOopqrtvZ] [-A FRAMERATE] [-e WID] [-G GAMMA] "
+ 	       "[-g GEOMETRY] [-N NAME] [-T TITLE] [-n NUM] [-S DELAY] [-s MODE] "
+ 	       "[-z ZOOM] FILES...\n");
+ }
+@@ -51,6 +51,7 @@ void parse_options(int argc, char **argv)
+ 	progname = progname ? progname + 1 : argv[0];
+ 
+ 	_options.from_stdin = false;
++	_options.dmenu = false;
+ 	_options.to_stdout = false;
+ 	_options.recursive = false;
+ 	_options.startnum = 0;
+@@ -75,7 +76,7 @@ void parse_options(int argc, char **argv)
+ 	_options.clean_cache = false;
+ 	_options.private_mode = false;
+ 
+-	while ((opt = getopt(argc, argv, "A:abce:fG:g:hin:N:opqrS:s:T:tvZz:")) != -1) {
++	while ((opt = getopt(argc, argv, "A:abce:fG:g:hin:N:OopqrS:s:T:tvZz:")) != -1) {
+ 		switch (opt) {
+ 			case '?':
+ 				print_usage();
+@@ -128,6 +129,9 @@ void parse_options(int argc, char **argv)
+ 			case 'N':
+ 				_options.res_name = optarg;
+ 				break;
++			case 'O':
++				_options.dmenu = true;
++				break;
+ 			case 'o':
+ 				_options.to_stdout = true;
+ 				break;
+-- 
+2.33.0
+
