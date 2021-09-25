@@ -17,9 +17,9 @@ Here are some examples scripts which add new and commonly requested functionalit
 
 | Name | Comments |
 | :--  | :--      |
-| [nsxiv-env](nsxiv-env) | Pass arguments to nsxiv using environment variables. |
-| [nsxiv-url](nsxiv-url) | Open remote files. |
-| [nsxiv-rifle](nsxiv-rifle) | Open all images in a directory. |
+| [nsxiv-env](scripts/nsxiv-env) | Pass arguments to nsxiv using environment variables. |
+| [nsxiv-url](scripts/nsxiv-url) | Open remote files. |
+| [nsxiv-rifle](scripts/nsxiv-rifle) | Open all images in a directory. |
 
 ## Tips and Tricks
 
