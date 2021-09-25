@@ -17,4 +17,4 @@ decrease.
 ## Authors
 
 * Original `sxiv-rifle` authors
-* NRK <nrk at disroot dot org>
+* NRK \<nrk at disroot dot org>
