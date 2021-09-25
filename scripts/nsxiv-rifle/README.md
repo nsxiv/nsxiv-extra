@@ -1,6 +1,6 @@
 # nsxiv-rifle
 
-This is a modified and more performant version of the
+This is a modified version of the
 [sxiv-rifle](https://github.com/ranger/ranger/blob/master/examples/rifle_sxiv.sh) script.
 This script opens an image as well as all the other images in that directory.
 
