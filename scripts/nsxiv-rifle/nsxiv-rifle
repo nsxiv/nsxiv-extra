@@ -26,7 +26,7 @@ open_img() {
   fi
 }
 
-while getopts abcfhiopqrtvZA:e:G:g:N:S:s:z: opt; do
+while getopts A:abce:fG:g:hin:N:opqrS:s:T:tvZz: opt; do
   case "$opt" in
     [a-z]|[A-Z]) args="$args -$opt $OPTARG" ;;
     *) exit 1 ;;
