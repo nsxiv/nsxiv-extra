@@ -15,7 +15,9 @@ stabilized PRs will be opened.
 
 ## User scripts
 
-Here are some examples scripts which add new and commonly requested functionality to nsxiv:
+Some examples scripts which add new and commonly requested functionality to
+nsxiv. These are meant to be minimal examples, users are encouraged to modify
+them to fit their use-cases.
 
 | Name | Comments |
 | :--  | :--      |
