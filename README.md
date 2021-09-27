@@ -4,6 +4,13 @@ This repo will be used for hosting community patches, user scripts, tips and
 tricks etc. ***As of now, this is under construction, once we have everything
 stabilized PRs will be opened.***
 
+For info on how to use nsxiv, please read the manpage.
+
+    $ man nsxiv
+
+For info on how to manage patches and customization, please see [managing
+customization and patches](CUSTOMIZATION.md)
+
 - - -
 
 ## Community patches
@@ -35,11 +42,3 @@ These are a couple small one liner tips and tricks which you can incorporate int
 ```sh
 find . -type f | shuf | nsxiv -i -S 2
 ```
-
-## Build scripts
-
-Here are some examples scripts which change the behavior of compilation/linkage:
-
-| Name | Comments |
-| :--  | :--      |
-| [override-config](https://github.com/nsxiv/nsxiv/wiki/override-config) | Make your config forwards compatible |
