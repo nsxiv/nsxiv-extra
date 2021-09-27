@@ -20,6 +20,15 @@ customization and patches](CUSTOMIZATION.md)
 | [dmenu-mode](patches/dmenu-mode) | Add dmenu mode to nsxiv |
 | [image-mode-cycle](patches/image-mode-cycle) | Cycle when viewing multiple images |
 
+For submitting patches please use the following format:
+
+* patchname-[BASE].ext
+
+`patchname` is simply the name of the patch and `.ext` is the extension, which
+can be either `.diff` or `.patch`. ` [BASE]` corresponds to either the version
+or the seven chars git commit short hash corresponding to the last commit on
+which the patch can be applied correctly and is working with.
+
 ## User scripts
 
 Some examples scripts which add new and commonly requested functionality to
