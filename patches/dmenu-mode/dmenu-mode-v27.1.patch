@@ -1,3 +1,72 @@
+From e90e29295228684ed5909122647a49f901c806ed Mon Sep 17 00:00:00 2001
+From: NRK <nrk@disroot.org>
+Date: Fri, 17 Sep 2021 04:03:14 +0600
+Subject: [PATCH 1/2] new keybind Shift-Return, print to stdout and exit
+
+---
+ commands.c   | 6 ++++++
+ commands.lst | 1 +
+ config.def.h | 1 +
+ nsxiv.1      | 3 +++
+ 4 files changed, 11 insertions(+)
+
+diff --git a/commands.c b/commands.c
+index aad2c3c..b6f9875 100644
+--- a/commands.c
++++ b/commands.c
+@@ -85,6 +85,12 @@ bool cg_switch_mode(arg_t _)
+ 	return true;
+ }
+ 
++bool cg_pick_quit(arg_t _)
++{
++	printf("%s\n", files[fileidx].name);
++	exit(EXIT_SUCCESS);
++}
++
+ bool cg_toggle_fullscreen(arg_t _)
+ {
+ 	win_toggle_fullscreen(&win);
+diff --git a/commands.lst b/commands.lst
+index 06e7d78..ffa699b 100644
+--- a/commands.lst
++++ b/commands.lst
+@@ -1,5 +1,6 @@
+ G_CMD(quit)
+ G_CMD(switch_mode)
++G_CMD(pick_quit)
+ G_CMD(toggle_fullscreen)
+ G_CMD(toggle_bar)
+ G_CMD(prefix_external)
+diff --git a/config.def.h b/config.def.h
+index dfc94e1..082a310 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -72,6 +72,7 @@ static const keymap_t keys[] = {
+ 	/* modifiers    key               function              argument */
+ 	{ 0,            XK_q,             g_quit,               None },
+ 	{ 0,            XK_Return,        g_switch_mode,        None },
++	{ ShiftMask,    XK_Return,        g_pick_quit,          None },
+ 	{ 0,            XK_f,             g_toggle_fullscreen,  None },
+ 	{ 0,            XK_b,             g_toggle_bar,         None },
+ 	{ ControlMask,  XK_x,             g_prefix_external,    None },
+diff --git a/nsxiv.1 b/nsxiv.1
+index 922b6db..e068784 100644
+--- a/nsxiv.1
++++ b/nsxiv.1
+@@ -136,6 +136,9 @@ Prefix the next command with a number (denoted via
+ .B q
+ Quit nsxiv.
+ .TP
++.B Shift-Return
++Print the current filename to standard out and quit sxiv.
++.TP
+ .B Return
+ Switch to thumbnail mode / open selected image in image mode.
+ .TP
+-- 
+2.33.0
+
 From 4bed969684b07dcb890ffd860a7aaac702a3991c Mon Sep 17 00:00:00 2001
 From: NRK <nrk@disroot.org>
 Date: Fri, 17 Sep 2021 04:04:15 +0600
