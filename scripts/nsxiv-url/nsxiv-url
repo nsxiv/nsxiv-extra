@@ -17,15 +17,7 @@ get_image() (
 
 ### main ###
 
-while getopts A:abce:fG:g:hin:N:opqrS:s:T:tvZz: opt; do
-  case "$opt" in
-    [a-z]|[A-Z]) args="$args -$opt $OPTARG" ;;
-    *) die ;;
-  esac
-done
-shift "$((OPTIND-1))"
 [ -z "$1" ] && die "No arguments given"
-
 trap cleanup EXIT
 [ -d "$cache_dir" ] || mkdir -p -- "$cache_dir" || die
 while [ -n "$1" ]; do
@@ -37,4 +29,4 @@ while [ -n "$1" ]; do
 done
 
 [ "$(find "$cache_dir" -type f -print | wc -l)" -ne 0 ] &&
-  nsxiv -p $args "$cache_dir"
+  nsxiv -p "$cache_dir"

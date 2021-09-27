@@ -26,15 +26,7 @@ open_img() {
   fi
 }
 
-while getopts A:abce:fG:g:hin:N:opqrS:s:T:tvZz: opt; do
-  case "$opt" in
-    [a-z]|[A-Z]) args="$args -$opt $OPTARG" ;;
-    *) exit 1 ;;
-  esac
-done
-shift "$((OPTIND-1))"
 [ "$1" = '--' ] && shift
-
 case "$1" in
   "") echo "Usage: ${0##*/} PICTURES" >&2; exit 1 ;;
   /*) open_img "$1" ;;
