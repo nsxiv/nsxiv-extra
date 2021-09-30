@@ -51,3 +51,18 @@ These are a couple small one liner tips and tricks which you can incorporate int
 ```sh
 find . -type f | shuf | nsxiv -i -S 2
 ```
+
+* dmenu imitation (keyhandler)
+
+```sh
+"e") # dmenu imitation
+echo "$file"
+kill $PPID
+;;
+```
+
+* printing images with [yad](https://github.com/v1cont/yad) (keyhandler)
+
+```sh
+"p") yad --print --type=image --filename="$file" ;;
+```
