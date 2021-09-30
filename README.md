@@ -52,17 +52,19 @@ These are a couple small one liner tips and tricks which you can incorporate int
 find . -type f | shuf | nsxiv -i -S 2
 ```
 
-* dmenu imitation (keyhandler)
+* [KEYHANDLER]: dmenu imitation
 
 ```sh
 "e") # dmenu imitation
-echo "$file"
+while read file; do
+	echo "$file"
+done
 kill $PPID
 ;;
 ```
 
-* printing images with [yad](https://github.com/v1cont/yad) (keyhandler)
+* [KEYHANDLER]: printing images with [yad](https://github.com/v1cont/yad)
 
 ```sh
-"p") yad --print --type=image --filename="$file" ;;
+"p")  while read file; do yad --print --type=image --filename="$file" ; done ;;
 ```
