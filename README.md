@@ -7,8 +7,8 @@ For info on how to use nsxiv, please read the manpage.
 
     $ man nsxiv
 
-For info on how to manage patches and customization, please see [managing
-customization and patches](CUSTOMIZATION.md)
+For info on how to manage patches and customization, please see
+[CUSTOMIZATION](CUSTOMIZATION.md)
 
 - - -
 
@@ -43,7 +43,8 @@ them to fit their use-cases.
 
 ## Tips and Tricks
 
-These are a couple small one liner tips and tricks which you can incorporate into your personal scripts.
+These are a couple small one liner tips and tricks which you can incorporate
+into your personal scripts.
 
 * Randomize images for slideshow
 
