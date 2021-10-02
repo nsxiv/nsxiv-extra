@@ -28,6 +28,10 @@ can be either `.diff` or `.patch`. ` [BASE]` corresponds to either the version
 or the seven chars git commit short hash corresponding to the last commit on
 which the patch can be applied correctly and is working with.
 
+Feel free you add yourself to the list of "Authors" if you contribute to a
+patch. Adding some form of contact detail is also encouraged. See
+[#Issues](#Issues) for more details.
+
 ## User scripts
 
 Some examples scripts which add new and commonly requested functionality to
@@ -68,3 +72,15 @@ kill $PPID
 ```sh
 "p")  while read file; do yad --print --type=image --filename="$file" ; done ;;
 ```
+
+## Issues
+
+Since this repo is community maintained the github issue tracker is disabled. If
+you run into any problems with any of the patches/scripts, try to fix it
+yourself and submit a pull request. If you're unable to do so, then you may
+contact the patch author if contact info has been provided.
+
+For patch submitter and contributors, it's encouraged to provide some sort of
+contact info so that users can send bug reports (or gratitude :)). The
+*preferred* contact method should be an email, however you're free to submit
+whatever you'd like.
