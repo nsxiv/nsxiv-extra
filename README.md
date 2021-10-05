@@ -44,6 +44,7 @@ them to fit their use-cases.
 | [nsxiv-url](scripts/nsxiv-url) | Open remote files. |
 | [nsxiv-rifle](scripts/nsxiv-rifle) | Open all images in a directory. |
 | [nsxiv-saver](scripts/nsxiv-saver) | Use nsxiv as a xsecurelock screensaver. |
+| [subtube](https://github.com/nagy135/subtube) | Watch subscribed youtubed videos. |
 
 ## Tips and Tricks
 
