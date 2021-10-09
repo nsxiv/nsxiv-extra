@@ -81,7 +81,7 @@ you run into any problems with any of the patches/scripts, try to fix it
 yourself and submit a pull request. If you're unable to do so, then you may
 contact the patch author if contact info has been provided.
 
-For patch submitter and contributors, it's encouraged to provide some sort of
+For patch submitter and contributors, it's encouraged (but not required) to provide some sort of
 contact info so that users can send bug reports (or gratitude :)). The
 *preferred* contact method should be an email, however you're free to submit
 whatever you'd like.
