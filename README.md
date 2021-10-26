@@ -16,6 +16,7 @@ For info on how to manage patches and customization, please see
 
 | Name | Comments |
 | :--  | :--      |
+| [alpha](patches/alpha) | Add alpha/transparency to nsxiv |
 | [dmenu-mode](patches/dmenu-mode) | Add dmenu mode to nsxiv |
 | [image-mode-cycle](patches/image-mode-cycle) | Cycle when viewing multiple images |
 
