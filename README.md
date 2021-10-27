@@ -62,7 +62,7 @@ find . -type f | shuf | nsxiv -i -S 2
 
 ```sh
 "e") # dmenu imitation
-while read file; do
+while IFS= read -r file; do
 	echo "$file"
 done
 kill $PPID
@@ -72,7 +72,7 @@ kill $PPID
 * [KEYHANDLER]: printing images with [yad](https://github.com/v1cont/yad)
 
 ```sh
-"p")  while read file; do yad --print --type=image --filename="$file" ; done ;;
+"p")  while IFS= read -r file; do yad --print --type=image --filename="$file" ; done ;;
 ```
 
 ## Issues
