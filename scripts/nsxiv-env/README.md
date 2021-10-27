@@ -12,8 +12,8 @@ your `PATH` before `nsxiv` (the actual binary) you will have to use the entire
 path to call `nsxiv`, otherwise the script will go into an infinite recursion.
 
 ```diff
--nsxiv $NSXIV_OPTS -- "$@"
-+/path/to/nsxiv $NSXIV_OPTS -- "$@"
+-exec nsxiv $NSXIV_OPTS "$@"
++exec /path/to/nsxiv $NSXIV_OPTS "$@"
 ```
 
 ## Authors
