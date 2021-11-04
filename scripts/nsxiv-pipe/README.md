@@ -6,7 +6,7 @@ file. `$TMPDIR` is respected if set. Example usage:
 ```sh
 curl 'https://link.to/image' | nsxiv-pipe
 
-nsxiv-pipe <(cat image)
+nsxiv-pipe < /path/to/image.png
 ```
 
 # Authors
