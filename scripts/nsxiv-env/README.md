@@ -18,6 +18,7 @@ path to call `nsxiv`, otherwise the script will go into an infinite recursion.
 
 ## Authors
 
+* Arthur Williams <taaparthur@gmail.com>
 * NRK \<nrk at disroot dot org>
 * Berke Kocaoğlu <berke.kocaoglu@metu.edu.tr>
 * eylles <ed.ylles1997@gmail.com>
