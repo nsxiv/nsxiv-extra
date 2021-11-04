@@ -46,6 +46,7 @@ them to fit their use-cases.
 | [nsxiv-rifle](scripts/nsxiv-rifle) | Open all images in a directory. |
 | [nsxiv-saver](scripts/nsxiv-saver) | Use nsxiv as a xsecurelock screensaver. |
 | [subtube](https://github.com/nagy135/subtube) | Watch subscribed youtubed videos. |
+| [nsxiv-pipe](scripts/nsxiv-pipe) | Pipe images into nsxiv |
 
 ## Tips and Tricks
 
