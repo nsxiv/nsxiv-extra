@@ -1,0 +1,31 @@
+#!/bin/sh
+
+cache_dir="/tmp/nsxiv-pipe"
+
+tmpfile="$cache_dir/stdin.$$"
+
+cleanup()
+{
+    rm -f -- "$tmpfile"
+}
+trap cleanup EXIT
+
+mkdir -p "$cache_dir"
+# Consume stdin and put it in the temporal file
+cat > "$tmpfile"
+
+if [ "$#" -eq 0 ]; then
+    echo "nsxiv-pipe: No arguments provided" >&2
+    exit 1
+fi
+
+# Pop from the beginning, convert if needed and push at the end
+for arg in "$@"; do
+    if [ "$arg" = "-" ]; then
+        arg="$tmpfile"
+    fi
+    shift
+    set -- "$@" "$arg"
+done
+
+nsxiv "$@"
