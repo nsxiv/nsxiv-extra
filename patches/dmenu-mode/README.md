@@ -7,3 +7,4 @@ filename of an image as soon as it's marked.
 ## Authors
 
 * NRK \<nrk at disroot dot org>
+* Lucas Mior \<lucas.mior at tutamail dot com>
