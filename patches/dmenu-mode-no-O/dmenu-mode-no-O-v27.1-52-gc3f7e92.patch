@@ -1,0 +1,63 @@
+diff --git a/commands.c b/commands.c
+index f44cee1..95c431c 100644
+--- a/commands.c
++++ b/commands.c
+@@ -85,6 +85,12 @@ bool cg_switch_mode(arg_t _)
+ 	return true;
+ }
+ 
++bool cg_pick_quit(arg_t _)
++{
++	printf("%s\n", files[fileidx].name);
++	exit(EXIT_SUCCESS);
++}
++
+ bool cg_toggle_fullscreen(arg_t _)
+ {
+ 	win_toggle_fullscreen(&win);
+diff --git a/commands.h b/commands.h
+index bc0e340..4557a34 100644
+--- a/commands.h
++++ b/commands.h
+@@ -15,6 +15,7 @@ bool cg_remove_image();
+ bool cg_reverse_marks();
+ bool cg_scroll_screen();
+ bool cg_switch_mode();
++bool cg_pick_quit();
+ bool cg_toggle_bar();
+ bool cg_toggle_fullscreen();
+ bool cg_toggle_image_mark();
+@@ -53,6 +54,7 @@ bool ct_reload_all();
+ #define g_reverse_marks { cg_reverse_marks, MODE_ALL }
+ #define g_scroll_screen { cg_scroll_screen, MODE_ALL }
+ #define g_switch_mode { cg_switch_mode, MODE_ALL }
++#define g_pick_quit { cg_pick_quit, MODE_ALL }
+ #define g_toggle_bar { cg_toggle_bar, MODE_ALL }
+ #define g_toggle_fullscreen { cg_toggle_fullscreen, MODE_ALL }
+ #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
+diff --git a/config.def.h b/config.def.h
+index 1ccf5a4..4f1e7a0 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -82,6 +82,7 @@ static const keymap_t keys[] = {
+ 	/* modifiers    key               function              argument */
+ 	{ 0,            XK_q,             g_quit,               None },
+ 	{ 0,            XK_Return,        g_switch_mode,        None },
++	{ ShiftMask,    XK_Return,        g_pick_quit,          None },
+ 	{ 0,            XK_f,             g_toggle_fullscreen,  None },
+ 	{ 0,            XK_b,             g_toggle_bar,         None },
+ 	{ ControlMask,  XK_x,             g_prefix_external,    None },
+diff --git a/nsxiv.1 b/nsxiv.1
+index 280ba23..8012de4 100644
+--- a/nsxiv.1
++++ b/nsxiv.1
+@@ -140,6 +140,9 @@ Prefix the next command with a number (denoted via
+ .B q
+ Quit nsxiv.
+ .TP
++.B Shift-Return
++Print the current filename to standard out and quit sxiv.
++.TP
+ .B Return
+ Switch to thumbnail mode / open selected image in image mode.
+ .TP
