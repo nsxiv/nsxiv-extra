@@ -33,6 +33,10 @@ Feel free you add yourself to the list of "Authors" if you contribute to a
 patch. Adding some form of contact detail is also encouraged. See
 [#Issues](#Issues) for more details.
 
+Note: Like all other suckless patches, these patches are community submitted
+and maintained. nsxiv `master` doesn't make any guarantee that there won't be
+merge conflicts on upgrade.
+
 ## User scripts
 
 Some examples scripts which add new and commonly requested functionality to
