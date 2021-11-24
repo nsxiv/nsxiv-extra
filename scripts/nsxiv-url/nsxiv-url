@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-cache_dir="/tmp/nsxiv"
+cache_dir="${TMPDIR:-/tmp}/nsxiv"
 
 die() {
   [ -n "$1" ] && printf '%s\n' "$*" >&2;
