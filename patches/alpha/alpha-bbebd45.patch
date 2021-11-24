@@ -1,0 +1,445 @@
+From e9337938a9522061ef3887f9fb9e609e804c8560 Mon Sep 17 00:00:00 2001
+From: Reto Schnyder <reto.a.schnyder@bluewin.ch>
+Date: Tue, 5 Oct 2021 20:34:41 +0200
+Subject: [PATCH 1/3] Enable background transparency
+
+Add the Xresource .window.alpha, which should be a float between 0.0 and 1.0 and sets the background
+transparency of the window.
+
+The main rendering code is factored out to `render_core()` in `image.c`, so it can be reused for
+thumbnail rendering.
+---
+ image.c  | 106 ++++++++++++++++++++++++++++++++++++-------------------
+ nsxiv.h  |   3 ++
+ thumbs.c |   6 ++--
+ window.c |  39 ++++++++++++++++----
+ 4 files changed, 109 insertions(+), 45 deletions(-)
+
+diff --git a/image.c b/image.c
+index 062f7add..7b1c7e51 100644
+--- a/image.c
++++ b/image.c
+@@ -571,13 +571,80 @@ bool img_fit(img_t *img)
+ 	}
+ }
+ 
++void render_core(win_t* win, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh,
++                 bool alpha)
++{
++	Imlib_Image im, bg, bbg;
++	Imlib_Color_Modifier cmod;
++	XColor c;
++
++	if (imlib_image_has_alpha()) {
++		im = imlib_context_get_image();
++		cmod = imlib_context_get_color_modifier();
++		if ((bg = imlib_create_image(dw, dh)) == NULL)
++			error(EXIT_FAILURE, ENOMEM, NULL);
++		imlib_context_set_image(bg);
++		imlib_image_set_has_alpha(1);
++
++		if (alpha) {
++			int i, c, r;
++			DATA32 col[2] = { 0xFF666666, 0xFF999999 };
++			DATA32 * data = imlib_image_get_data();
++
++			for (r = 0; r < dh; r++) {
++				i = r * dw;
++				if (r == 0 || r == 8) {
++					for (c = 0; c < dw; c++)
++						data[i++] = col[!(c & 8) ^ !r];
++				} else {
++					memcpy(&data[i], &data[(r & 8) * dw], dw * sizeof(data[0]));
++				}
++			}
++			imlib_image_put_back_data(data);
++		} else {
++			imlib_image_clear();
++			c = win->win_bg;
++			imlib_context_set_color(c.red >> 8, c.green >> 8, c.blue >> 8,
++			                        win->win_alpha);
++			imlib_image_fill_rectangle(0, 0, dw, dh);
++		}
++
++		imlib_blend_image_onto_image(im, 1, sx, sy, sw, sh, 0, 0, dw, dh);
++		imlib_context_set_color_modifier(NULL);
++
++		if (!alpha && win->win_alpha < 0xFF) {
++			/* blend onto black to get premultiplied alpha */
++			if ((bbg = imlib_create_image(dw, dh)) == NULL)
++				error(EXIT_FAILURE, ENOMEM, NULL);
++			imlib_context_set_image(bbg);
++			imlib_image_set_has_alpha(1);
++			imlib_context_set_color(0, 0, 0, 0xFF);
++			imlib_image_fill_rectangle(0, 0, dw, dh);
++			imlib_blend_image_onto_image(bg, 1, 0, 0, dw, dh, 0, 0, dw, dh);
++			imlib_image_copy_alpha_to_image(bg, 0, 0);
++			imlib_context_set_image(bg);
++			imlib_free_image();
++			imlib_context_set_image(bbg);
++		}
++
++		imlib_context_set_blend(0);
++		imlib_render_image_on_drawable(dx, dy);
++		imlib_context_set_blend(1);
++		imlib_free_image();
++		imlib_context_set_color_modifier(cmod);
++	} else {
++		imlib_image_set_has_alpha(1);
++		imlib_context_set_blend(0);
++		imlib_render_image_part_on_drawable_at_size(sx, sy, sw, sh, dx, dy, dw, dh);
++		imlib_context_set_blend(1);
++	}
++}
++
+ void img_render(img_t *img)
+ {
+ 	win_t *win;
+ 	int sx, sy, sw, sh;
+ 	int dx, dy, dw, dh;
+-	Imlib_Image bg;
+-	XColor c;
+ 
+ 	win = img->win;
+ 	img_fit(img);
+@@ -623,40 +690,7 @@ void img_render(img_t *img)
+ 	imlib_context_set_anti_alias(img->aa);
+ 	imlib_context_set_drawable(win->buf.pm);
+ 
+-	if (imlib_image_has_alpha()) {
+-		if ((bg = imlib_create_image(dw, dh)) == NULL)
+-			error(EXIT_FAILURE, ENOMEM, NULL);
+-		imlib_context_set_image(bg);
+-		imlib_image_set_has_alpha(0);
+-
+-		if (img->alpha) {
+-			int i, c, r;
+-			DATA32 col[2] = { 0xFF666666, 0xFF999999 };
+-			DATA32 * data = imlib_image_get_data();
+-
+-			for (r = 0; r < dh; r++) {
+-				i = r * dw;
+-				if (r == 0 || r == 8) {
+-					for (c = 0; c < dw; c++)
+-						data[i++] = col[!(c & 8) ^ !r];
+-				} else {
+-					memcpy(&data[i], &data[(r & 8) * dw], dw * sizeof(data[0]));
+-				}
+-			}
+-			imlib_image_put_back_data(data);
+-		} else {
+-			c = win->win_bg;
+-			imlib_context_set_color(c.red >> 8, c.green >> 8, c.blue >> 8, 0xFF);
+-			imlib_image_fill_rectangle(0, 0, dw, dh);
+-		}
+-		imlib_blend_image_onto_image(img->im, 0, sx, sy, sw, sh, 0, 0, dw, dh);
+-		imlib_context_set_color_modifier(NULL);
+-		imlib_render_image_on_drawable(dx, dy);
+-		imlib_free_image();
+-		imlib_context_set_color_modifier(img->cmod);
+-	} else {
+-		imlib_render_image_part_on_drawable_at_size(sx, sy, sw, sh, dx, dy, dw, dh);
+-	}
++	render_core(win, sx, sy, sw, sh, dx, dy, dw, dh, img->alpha);
+ 	img->dirty = false;
+ }
+ 
+diff --git a/nsxiv.h b/nsxiv.h
+index 45d17722..016db7c4 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -245,6 +245,7 @@ void img_toggle_antialias(img_t*);
+ bool img_change_gamma(img_t*, int);
+ bool img_frame_navigate(img_t*, int);
+ bool img_frame_animate(img_t*);
++void render_core(win_t*, int, int, int, int, int, int, int, int, bool);
+ 
+ 
+ /* options.c */
+@@ -409,6 +410,8 @@ struct win {
+ 	XColor win_bg;
+ 	XColor win_fg;
+ 	XColor mrk_fg;
++	XColor win_bg_premul; /* premultiplied alpha */
++	unsigned int win_alpha;
+ #if HAVE_LIBFONTS
+ 	XftColor bar_bg;
+ 	XftColor bar_fg;
+diff --git a/thumbs.c b/thumbs.c
+index 7e2415ca..bd503c43 100644
+--- a/thumbs.c
++++ b/thumbs.c
+@@ -447,7 +447,7 @@ void tns_render(tns_t *tns)
+ 			t->x = x + (thumb_sizes[tns->zl] - t->w) / 2;
+ 			t->y = y + (thumb_sizes[tns->zl] - t->h) / 2;
+ 			imlib_context_set_image(t->im);
+-			imlib_render_image_on_drawable_at_size(t->x, t->y, t->w, t->h);
++			render_core(win, 0, 0, t->w, t->h, t->x, t->y, t->w, t->h, false);
+ 			if (tns->files[i].flags & FF_MARK)
+ 				tns_mark(tns, i, true);
+ 		} else {
+@@ -469,7 +469,7 @@ void tns_mark(tns_t *tns, int n, bool mark)
+ 	if (n >= 0 && n < *tns->cnt && tns->thumbs[n].im != NULL) {
+ 		win_t *win = tns->win;
+ 		thumb_t *t = &tns->thumbs[n];
+-		unsigned long col = win->win_bg.pixel;
++		unsigned long col = win->win_bg_premul.pixel;
+ 		int x = t->x + t->w, y = t->y + t->h;
+ 
+ 		win_draw_rect(win, x - 1, y + 1, 1, tns->bw, true, 1, col);
+@@ -490,7 +490,7 @@ void tns_highlight(tns_t *tns, int n, bool hl)
+ 	if (n >= 0 && n < *tns->cnt && tns->thumbs[n].im != NULL) {
+ 		win_t *win = tns->win;
+ 		thumb_t *t = &tns->thumbs[n];
+-		unsigned long col = hl ? win->win_fg.pixel : win->win_bg.pixel;
++		unsigned long col = hl ? win->win_fg.pixel : win->win_bg_premul.pixel;
+ 		int oxy = (tns->bw + 1) / 2 + 1, owh = tns->bw + 2;
+ 
+ 		win_draw_rect(win, t->x - oxy, t->y - oxy, t->w + owh, t->h + owh,
+diff --git a/window.c b/window.c
+index 5e1392fd..eb72f613 100644
+--- a/window.c
++++ b/window.c
+@@ -105,12 +105,14 @@ const char* win_res(XrmDatabase db, const char *name, const char *def)
+ void win_init(win_t *win)
+ {
+ 	win_env_t *e;
+-	const char *win_bg, *win_fg, *mrk_fg;
++	const char *win_bg, *win_fg, *mrk_fg, *win_alpha;
+ #if HAVE_LIBFONTS
+ 	const char *bar_fg, *bar_bg, *f;
+ #endif
+ 	char *res_man;
+ 	XrmDatabase db;
++	XVisualInfo vis;
++	float alpha;
+ 
+ 	memset(win, 0, sizeof(win_t));
+ 
+@@ -121,9 +123,17 @@ void win_init(win_t *win)
+ 	e->scr = DefaultScreen(e->dpy);
+ 	e->scrw = DisplayWidth(e->dpy, e->scr);
+ 	e->scrh = DisplayHeight(e->dpy, e->scr);
+-	e->depth = DefaultDepth(e->dpy, e->scr);
+-	e->vis = DefaultVisual(e->dpy, e->scr);
+-	e->cmap = DefaultColormap(e->dpy, e->scr);
++
++	if (XMatchVisualInfo(e->dpy, e->scr, 32, TrueColor, &vis)) {
++		e->depth = 32;
++		e->vis = vis.visual;
++		e->cmap = XCreateColormap(e->dpy, DefaultRootWindow(e->dpy), e->vis, None);
++	}
++	else {
++		e->depth = DefaultDepth(e->dpy, e->scr);
++		e->vis = DefaultVisual(e->dpy, e->scr);
++		e->cmap = DefaultColormap(e->dpy, e->scr);
++	}
+ 
+ 	if (setlocale(LC_CTYPE, "") == NULL || XSupportsLocale() == 0)
+ 		error(0, 0, "No locale support");
+@@ -139,6 +149,23 @@ void win_init(win_t *win)
+ 	win_alloc_color(e, win_fg, &win->win_fg);
+ 	win_alloc_color(e, mrk_fg, &win->mrk_fg);
+ 
++	/* apply alpha */
++	win_alpha = win_res(db, RES_CLASS ".window.alpha", "1.0");
++	alpha = strtof(win_alpha, NULL);
++	win->win_alpha = 0xFF;
++	win->win_bg_premul = win->win_bg;
++	if (e->depth == 32 && alpha >= 0.0 && alpha < 1.0) {
++		win->win_alpha *= alpha;
++		win->win_bg_premul.red *= alpha;
++		win->win_bg_premul.green *= alpha;
++		win->win_bg_premul.blue *= alpha;
++		win->win_bg_premul.pixel =
++			(((unsigned long) win->win_bg_premul.blue  >> 8) <<  0) |
++			(((unsigned long) win->win_bg_premul.green >> 8) <<  8) |
++			(((unsigned long) win->win_bg_premul.red   >> 8) << 16) |
++			(((unsigned long) win->win_alpha               ) << 24);
++	}
++
+ #if HAVE_LIBFONTS
+ 	bar_bg = win_res(db, RES_CLASS ".bar.background", win_bg);
+ 	bar_fg = win_res(db, RES_CLASS ".bar.foreground", win_fg);
+@@ -308,7 +335,7 @@ void win_open(win_t *win)
+ 	win->buf.h = e->scrh;
+ 	win->buf.pm = XCreatePixmap(e->dpy, win->xwin, win->buf.w, win->buf.h, e->depth);
+ 
+-	XSetForeground(e->dpy, gc, win->win_bg.pixel);
++	XSetForeground(e->dpy, gc, win->win_bg_premul.pixel);
+ 	XFillRectangle(e->dpy, win->buf.pm, gc, 0, 0, win->buf.w, win->buf.h);
+ 	XSetWindowBackgroundPixmap(e->dpy, win->xwin, win->buf.pm);
+ 	XMapWindow(e->dpy, win->xwin);
+@@ -389,7 +416,7 @@ void win_clear(win_t *win)
+ 		win->buf.pm = XCreatePixmap(e->dpy, win->xwin,
+ 		                            win->buf.w, win->buf.h, e->depth);
+ 	}
+-	XSetForeground(e->dpy, gc, win->win_bg.pixel);
++	XSetForeground(e->dpy, gc, win->win_bg_premul.pixel);
+ 	XFillRectangle(e->dpy, win->buf.pm, gc, 0, 0, win->buf.w, win->buf.h);
+ }
+ 
+
+From d5a5929b4cb1001e753f6cf2628b79d27cbf82e0 Mon Sep 17 00:00:00 2001
+From: Reto Schnyder <reto.a.schnyder@bluewin.ch>
+Date: Sat, 23 Oct 2021 11:05:01 +0200
+Subject: [PATCH 2/3] Store pre-multiplied alpha in win_bg, post-multiplied in
+ win_bg_postmul
+
+---
+ image.c  |  2 +-
+ nsxiv.h  |  4 ++--
+ thumbs.c |  4 ++--
+ window.c | 22 +++++++++++-----------
+ 4 files changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/image.c b/image.c
+index 7b1c7e51..d6201ee9 100644
+--- a/image.c
++++ b/image.c
+@@ -603,7 +603,7 @@ void render_core(win_t* win, int sx, int sy, int sw, int sh, int dx, int dy, int
+ 			imlib_image_put_back_data(data);
+ 		} else {
+ 			imlib_image_clear();
+-			c = win->win_bg;
++			c = win->win_bg_postmul;
+ 			imlib_context_set_color(c.red >> 8, c.green >> 8, c.blue >> 8,
+ 			                        win->win_alpha);
+ 			imlib_image_fill_rectangle(0, 0, dw, dh);
+diff --git a/nsxiv.h b/nsxiv.h
+index 016db7c4..c85510ba 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -407,10 +407,10 @@ struct win {
+ 	Window xwin;
+ 	win_env_t env;
+ 
+-	XColor win_bg;
++	XColor win_bg; /* pre-multiplied alpha */
++	XColor win_bg_postmul; /* post-multiplied alpha */
+ 	XColor win_fg;
+ 	XColor mrk_fg;
+-	XColor win_bg_premul; /* premultiplied alpha */
+ 	unsigned int win_alpha;
+ #if HAVE_LIBFONTS
+ 	XftColor bar_bg;
+diff --git a/thumbs.c b/thumbs.c
+index bd503c43..531ad448 100644
+--- a/thumbs.c
++++ b/thumbs.c
+@@ -469,7 +469,7 @@ void tns_mark(tns_t *tns, int n, bool mark)
+ 	if (n >= 0 && n < *tns->cnt && tns->thumbs[n].im != NULL) {
+ 		win_t *win = tns->win;
+ 		thumb_t *t = &tns->thumbs[n];
+-		unsigned long col = win->win_bg_premul.pixel;
++		unsigned long col = win->win_bg.pixel;
+ 		int x = t->x + t->w, y = t->y + t->h;
+ 
+ 		win_draw_rect(win, x - 1, y + 1, 1, tns->bw, true, 1, col);
+@@ -490,7 +490,7 @@ void tns_highlight(tns_t *tns, int n, bool hl)
+ 	if (n >= 0 && n < *tns->cnt && tns->thumbs[n].im != NULL) {
+ 		win_t *win = tns->win;
+ 		thumb_t *t = &tns->thumbs[n];
+-		unsigned long col = hl ? win->win_fg.pixel : win->win_bg_premul.pixel;
++		unsigned long col = hl ? win->win_fg.pixel : win->win_bg.pixel;
+ 		int oxy = (tns->bw + 1) / 2 + 1, owh = tns->bw + 2;
+ 
+ 		win_draw_rect(win, t->x - oxy, t->y - oxy, t->w + owh, t->h + owh,
+diff --git a/window.c b/window.c
+index eb72f613..d7fc8f34 100644
+--- a/window.c
++++ b/window.c
+@@ -150,20 +150,20 @@ void win_init(win_t *win)
+ 	win_alloc_color(e, mrk_fg, &win->mrk_fg);
+ 
+ 	/* apply alpha */
++	win->win_bg_postmul = win->win_bg;
+ 	win_alpha = win_res(db, RES_CLASS ".window.alpha", "1.0");
+ 	alpha = strtof(win_alpha, NULL);
+ 	win->win_alpha = 0xFF;
+-	win->win_bg_premul = win->win_bg;
+ 	if (e->depth == 32 && alpha >= 0.0 && alpha < 1.0) {
+ 		win->win_alpha *= alpha;
+-		win->win_bg_premul.red *= alpha;
+-		win->win_bg_premul.green *= alpha;
+-		win->win_bg_premul.blue *= alpha;
+-		win->win_bg_premul.pixel =
+-			(((unsigned long) win->win_bg_premul.blue  >> 8) <<  0) |
+-			(((unsigned long) win->win_bg_premul.green >> 8) <<  8) |
+-			(((unsigned long) win->win_bg_premul.red   >> 8) << 16) |
+-			(((unsigned long) win->win_alpha               ) << 24);
++		win->win_bg.red *= alpha;
++		win->win_bg.green *= alpha;
++		win->win_bg.blue *= alpha;
++		win->win_bg.pixel =
++			(((unsigned long) win->win_bg.blue  >> 8) <<  0) |
++			(((unsigned long) win->win_bg.green >> 8) <<  8) |
++			(((unsigned long) win->win_bg.red   >> 8) << 16) |
++			(((unsigned long) win->win_alpha        ) << 24);
+ 	}
+ 
+ #if HAVE_LIBFONTS
+@@ -335,7 +335,7 @@ void win_open(win_t *win)
+ 	win->buf.h = e->scrh;
+ 	win->buf.pm = XCreatePixmap(e->dpy, win->xwin, win->buf.w, win->buf.h, e->depth);
+ 
+-	XSetForeground(e->dpy, gc, win->win_bg_premul.pixel);
++	XSetForeground(e->dpy, gc, win->win_bg.pixel);
+ 	XFillRectangle(e->dpy, win->buf.pm, gc, 0, 0, win->buf.w, win->buf.h);
+ 	XSetWindowBackgroundPixmap(e->dpy, win->xwin, win->buf.pm);
+ 	XMapWindow(e->dpy, win->xwin);
+@@ -416,7 +416,7 @@ void win_clear(win_t *win)
+ 		win->buf.pm = XCreatePixmap(e->dpy, win->xwin,
+ 		                            win->buf.w, win->buf.h, e->depth);
+ 	}
+-	XSetForeground(e->dpy, gc, win->win_bg_premul.pixel);
++	XSetForeground(e->dpy, gc, win->win_bg.pixel);
+ 	XFillRectangle(e->dpy, win->buf.pm, gc, 0, 0, win->buf.w, win->buf.h);
+ }
+ 
+
+From c3d2a88e7619b1ab9bacd3e3c62c098707e1d14c Mon Sep 17 00:00:00 2001
+From: Reto Schnyder <reto.a.schnyder@bluewin.ch>
+Date: Sat, 23 Oct 2021 11:07:51 +0200
+Subject: [PATCH 3/3] Check for error in .window.alpha
+
+---
+ window.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/window.c b/window.c
+index d7fc8f34..d8c4128c 100644
+--- a/window.c
++++ b/window.c
+@@ -113,6 +113,7 @@ void win_init(win_t *win)
+ 	XrmDatabase db;
+ 	XVisualInfo vis;
+ 	float alpha;
++	char *endptr;
+ 
+ 	memset(win, 0, sizeof(win_t));
+ 
+@@ -128,8 +129,7 @@ void win_init(win_t *win)
+ 		e->depth = 32;
+ 		e->vis = vis.visual;
+ 		e->cmap = XCreateColormap(e->dpy, DefaultRootWindow(e->dpy), e->vis, None);
+-	}
+-	else {
++	} else {
+ 		e->depth = DefaultDepth(e->dpy, e->scr);
+ 		e->vis = DefaultVisual(e->dpy, e->scr);
+ 		e->cmap = DefaultColormap(e->dpy, e->scr);
+@@ -152,9 +152,11 @@ void win_init(win_t *win)
+ 	/* apply alpha */
+ 	win->win_bg_postmul = win->win_bg;
+ 	win_alpha = win_res(db, RES_CLASS ".window.alpha", "1.0");
+-	alpha = strtof(win_alpha, NULL);
++	alpha = strtof(win_alpha, &endptr);
++	if (!(*endptr == '\0' && alpha >= 0.0 && alpha <= 1.0))
++		error(EXIT_FAILURE, 0, "Error parsing alpha");
+ 	win->win_alpha = 0xFF;
+-	if (e->depth == 32 && alpha >= 0.0 && alpha < 1.0) {
++	if (e->depth == 32 && alpha < 1.0) {
+ 		win->win_alpha *= alpha;
+ 		win->win_bg.red *= alpha;
+ 		win->win_bg.green *= alpha;

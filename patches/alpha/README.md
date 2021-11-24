@@ -6,4 +6,4 @@ entry `Nsxiv.window.alpha` to set alpha. Values can be anything between 0.0 to
 
 ## Authors
 
-* Reto Schnyder
+* Reto Schnyder <reto.a.schnyder@bluewin.ch>
