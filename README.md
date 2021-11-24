@@ -5,7 +5,9 @@ tricks etc.
 
 For info on how to use nsxiv, please read the manpage.
 
-    $ man nsxiv
+```sh
+$ man nsxiv
+```
 
 For info on how to manage patches and customization, please see
 [CUSTOMIZATION](CUSTOMIZATION.md)
