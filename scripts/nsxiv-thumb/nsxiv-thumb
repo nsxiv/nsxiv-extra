@@ -1,6 +1,10 @@
 #!/usr/bin/env sh
 
-tmpdir="$(mktemp -d)"
+tmpdir="$(mktemp -d)" || {
+    printf "%s: %s\n" "${0##*/}" "could not create temporary directory"
+    exit 1
+}
+trap 'rm -rf -- "$tmpdir"' TERM INT EXIT
 
 find '.' -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -printf "%P\0" \
     | xargs -r0 -n 20 -P 64 file -00 -L --mime-type -- \
