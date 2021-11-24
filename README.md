@@ -51,6 +51,7 @@ them to fit their use-cases.
 | [nsxiv-saver](scripts/nsxiv-saver) | Use nsxiv as a xsecurelock screensaver. |
 | [subtube](https://github.com/nagy135/subtube) | Watch subscribed youtubed videos. |
 | [nsxiv-pipe](scripts/nsxiv-pipe) | Pipe images into nsxiv |
+| [nsxiv-thumb](scripts/nsxiv-thumb) | Select videos to open in the current directory. |
 
 ## Tips and Tricks
 
