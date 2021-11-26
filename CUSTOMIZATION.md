@@ -1,8 +1,20 @@
-# Hacking
-nsxiv aims to be suckless-like and is therefore designed to be hacked and
-customized by the user. The main method of doing so is editing
-[config.h](config.h), a plain C99 header file. There are two ways you could edit
-this file.
+## Managing customization and patches
+
+nsxiv code-base aims to be simple and hack-able. User's are encouraged to edit
+the source-code as they see fit. This includes simple customization in
+`config.h` or more heavy customization via patches.
+
+In order to manage such customization the best and recommended way is to use
+`git`. Suckless's website has a [great guide](http://dwm.suckless.org/customisation/patches_in_git)
+on how to use git branching and rebase to manage your personal build. If you're
+unfamiliar with git then you may want to first familiarize yourself with some of
+the basics first.
+<!-- we should add some basic git guide here -->
+
+## Hacking
+
+The main method of customization is via editing [config.h](config.h), a plain
+C99 header file. There are two ways you could edit this file.
 
 The first is to change the values of the configuration variables. As an example,
 the default value of the `ANTI_ALIAS` variable is `true`. You could set it to
@@ -36,19 +48,6 @@ static const keymap_t keys[] = {
 
 For more complex functionality, you may also choose to directly edit the nsxiv
 source.
-
-# Managing customization and patches
-
-nsxiv code-base aims to be simple and hack-able. User's are encouraged to edit
-the source-code as they see fit. This includes simple customization in
-`config.h` or more heavy customization via patches.
-
-In order to manage such customization the best and recommended way is to use
-`git`. Suckless's website has a [great guide](http://dwm.suckless.org/customisation/patches_in_git)
-on how to use git branching and rebase to manage your personal build. If you're
-unfamiliar with git then you may want to first familiarize yourself with some of
-the basics first.
-<!-- we should add some basic git guide here -->
 
 ## Making your config forward compatible
 
