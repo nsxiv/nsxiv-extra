@@ -32,8 +32,8 @@ or the seven chars git commit short hash corresponding to the last commit on
 which the patch can be applied correctly and is working with.
 
 Feel free you add yourself to the list of "Authors" if you contribute to a
-patch. Adding some form of contact detail is also encouraged. See
-[#Issues](#Issues) for more details.
+patch. You may also add some form of contact detail if you wish (preferably
+email, but can be anything else).
 
 Note: Like all other suckless patches, these patches are community submitted
 and maintained. nsxiv `master` doesn't make any guarantee that there won't be
@@ -85,12 +85,9 @@ kill $PPID
 
 ## Issues
 
-Since this repo is community maintained the github issue tracker is disabled. If
-you run into any problems with any of the patches/scripts, try to fix it
-yourself and submit a pull request. If you're unable to do so, then you may
-contact the patch author if contact info has been provided.
+Since this repo is community maintained there's no guarantee that an issue will
+be worked on. If you run into any problems with any of the patches/scripts,
+try to fix it yourself and submit a pull request.
 
-For patch submitter and contributors, it's encouraged (but not required) to provide some sort of
-contact info so that users can send bug reports (or gratitude :)). The
-*preferred* contact method should be an email, however you're free to submit
-whatever you'd like.
+You may also open an issue for a feature/patch/script request, but as stated
+above, there's no guarantee.
