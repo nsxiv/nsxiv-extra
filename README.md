@@ -21,6 +21,7 @@ For info on how to manage patches and customization, please see
 | [alpha](patches/alpha) | Add alpha/transparency to nsxiv |
 | [dmenu-mode](patches/dmenu-mode) | Add dmenu mode to nsxiv |
 | [image-mode-cycle](patches/image-mode-cycle) | Cycle when viewing multiple images |
+| [toggle-winbg](patches/toggle-winbg) | Keybinding to toggle the window background color |
 
 For submitting patches please use the following format:
 
