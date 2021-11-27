@@ -47,7 +47,9 @@ static const keymap_t keys[] = {
 ```
 
 For more complex functionality, you may also choose to directly edit the nsxiv
-source.
+source; but, the above method of writing custom functions for `config.h` is
+preferred as it can enable better compatibility between patches or with future
+versions of nsxiv, and requires less maintenance by the user.
 
 ## Making your config forward compatible
 
