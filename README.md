@@ -9,6 +9,9 @@ For information on nsxiv, please consult the
 For information on how to manage patches and customization, please see
 [CUSTOMIZATION](CUSTOMIZATION.md).
 
+For general tips and tricks on scripting with nsxiv, please see
+[SCRIPTING](SCRIPTING.md).
+
 - - -
 
 Feel free to add yourself to the list of "Authors" if you contribute to
@@ -74,39 +77,10 @@ them to fit their use-cases.
 For script submissions, it is highly encouraged (but not required) to use POSIX
 `sh` rather than `bash`, `zsh`, `Python`, etc.
 
-## Tips and Tricks
-
-These are a couple small one liner tips and tricks which you can incorporate
-into your personal scripts.
-
-* Randomize images for slideshow
-
-```sh
-find . -type f | shuf | nsxiv -i -S 2
-```
-
-* [KEYHANDLER]: dmenu imitation
-
-```sh
-"e") # dmenu imitation
-while IFS= read -r file; do
-	echo "$file"
-done
-kill $PPID
-;;
-```
-
-* [KEYHANDLER]: printing images with [yad](https://github.com/v1cont/yad)
-
-```sh
-"p")  while IFS= read -r file; do yad --print --type=image --filename="$file" ; done ;;
-```
-
 ## Issues
 
 Since this repo is community maintained there's no guarantee that an issue will
-be worked on. If you run into any problems with any of the patches/scripts,
-try to fix it yourself and submit a pull request.
+be worked on. If you run into any problems with any of the patches/scripts, try to
+fix it yourself and submit a pull request.
 
-You may also open an issue for a feature/patch/script request, but as stated
-above, there's no guarantee.
+You may also open an issue for a request, but as stated above, there's no guarantee.
