@@ -1,18 +1,41 @@
 # nsxiv-extra
 
-This repo will be used for hosting community patches, user scripts, tips and
-tricks etc.
+This repo is be used for hosting config functions, community patches, user
+scripts, tips and tricks, etc.
 
-For info on how to use nsxiv, please read the manpage.
+For information on nsxiv, please consult the
+[nsxiv readme](https://github.com/nsxiv/nsxiv).
 
-```sh
-$ man nsxiv
-```
-
-For info on how to manage patches and customization, please see
-[CUSTOMIZATION](CUSTOMIZATION.md)
+For information on how to manage patches and customization, please see
+[CUSTOMIZATION](CUSTOMIZATION.md).
 
 - - -
+
+Feel free to add yourself to the list of "Authors" if you contribute to
+anything. You may also add some form of contact detail if you wish
+(preferably email, but can be anything else).
+
+Note: All config functions, patches and scripts in this repository are
+community submitted and maintained. Mainline nsxiv does not make any
+guarantee that there won't be merge conflicts or broken functionality
+on upgrade.
+
+## Config functions
+
+| Name | Comments |
+| :--  | :--      |
+| [toggle-winbg](config-functions/toggle-winbg) | Toggle the window background color |
+
+For config function submissions please use the following format:
+
+* name-[BASE].h
+
+`[BASE]` corresponds to either the version or the seven chars git commit
+short hash corresponding to the last commit on which the patch can be
+applied correctly and is tested to work with.
+
+If your patch's scope is more than adding a bindable config function exclusively
+in `config.h`, it should be submitted as a community patch, not config function.
 
 ## Community patches
 
@@ -23,22 +46,14 @@ For info on how to manage patches and customization, please see
 | [image-mode-cycle](patches/image-mode-cycle) | Cycle when viewing multiple images |
 | [toggle-winbg](patches/toggle-winbg) | Keybinding to toggle the window background color |
 
-For submitting patches please use the following format:
+For patch submissions please use the following format:
 
-* patchname-[BASE].ext
+* name-[BASE].ext
 
-`patchname` is simply the name of the patch and `.ext` is the extension, which
-can be either `.diff` or `.patch`. ` [BASE]` corresponds to either the version
+`name` is simply the name of the patch and `.ext` is the extension, which
+can be either `.diff` or `.patch`. `[BASE]` corresponds to either the version
 or the seven chars git commit short hash corresponding to the last commit on
-which the patch can be applied correctly and is working with.
-
-Feel free you add yourself to the list of "Authors" if you contribute to a
-patch. You may also add some form of contact detail if you wish (preferably
-email, but can be anything else).
-
-Note: Like all other suckless patches, these patches are community submitted
-and maintained. nsxiv `master` doesn't make any guarantee that there won't be
-merge conflicts on upgrade.
+which the patch can be applied correctly and is tested to work with.
 
 ## User scripts
 
@@ -55,6 +70,9 @@ them to fit their use-cases.
 | [subtube](https://github.com/nagy135/subtube) | Watch subscribed youtubed videos. |
 | [nsxiv-pipe](scripts/nsxiv-pipe) | Pipe images into nsxiv |
 | [nsxiv-thumb](scripts/nsxiv-thumb) | Select videos to open in the current directory. |
+
+For script submissions, it is highly encouraged (but not required) to use POSIX
+`sh` rather than `bash`, `zsh`, `Python`, etc.
 
 ## Tips and Tricks
 
