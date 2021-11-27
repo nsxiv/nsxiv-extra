@@ -3,14 +3,12 @@
 This repo is be used for hosting config functions, community patches, user
 scripts, tips and tricks, etc.
 
-For information on nsxiv, please consult the
-[nsxiv readme](https://github.com/nsxiv/nsxiv).
-
-For information on how to manage patches and customization, please see
-[CUSTOMIZATION](CUSTOMIZATION.md).
-
-For general tips and tricks on scripting with nsxiv, please see
-[SCRIPTING](SCRIPTING.md).
+* For information on nsxiv, please consult the
+  [nsxiv readme](https://github.com/nsxiv/nsxiv).
+* For information on how to manage patches and customization, please see
+  [CUSTOMIZATION](CUSTOMIZATION.md).
+* For general tips and tricks on scripting with nsxiv, please see
+  [SCRIPTING](SCRIPTING.md).
 
 - - -
 
@@ -18,7 +16,7 @@ Feel free to add yourself to the list of "Authors" if you contribute to
 anything. You may also add some form of contact detail if you wish
 (preferably email, but can be anything else).
 
-Note: All config functions, patches and scripts in this repository are
+NOTE: All config functions, patches and scripts in this repository are
 community submitted and maintained. Mainline nsxiv does not make any
 guarantee that there won't be merge conflicts or broken functionality
 on upgrade.
