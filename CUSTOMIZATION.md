@@ -46,6 +46,25 @@ static const keymap_t keys[] = {
 }
 ```
 
+Isolated patches can also be turned into custom config.h functions. To do so,
+you will have to copy the function into your config.h and then add the nessesary
+`extern` declares. Here is [toggle-winbg](patches/toggle-winbg) turned into a
+custom function for example:
+
+```c
+bool cg_toggle_winbg(arg_t _)
+{
+	extern win_t win;
+	extern img_t img;
+	win.win_bg.pixel ^= ~0;
+	win.win_bg.red   ^= ~0;
+	win.win_bg.green ^= ~0;
+	win.win_bg.blue  ^= ~0;
+	img.dirty = true;
+	return true;
+}
+```
+
 For more complex functionality, you may also choose to directly edit the nsxiv
 source; but, the above method of writing custom functions for `config.h` is
 preferred as it can enable better compatibility between patches or with future
