@@ -1,7 +1,7 @@
 # nsxiv-extra
 
-This repo is be used for hosting config functions, community patches, user
-scripts, tips and tricks, etc.
+This repo is be used for hosting community patches, user scripts, tips and
+tricks, etc.
 
 * For information on nsxiv, please consult the
   [nsxiv readme](https://github.com/nsxiv/nsxiv).
@@ -16,27 +16,9 @@ Feel free to add yourself to the list of "Authors" if you contribute to
 anything. You may also add some form of contact detail if you wish
 (preferably email, but can be anything else).
 
-NOTE: All config functions, patches and scripts in this repository are
-community submitted and maintained. Mainline nsxiv does not make any
-guarantee that there won't be merge conflicts or broken functionality
-on upgrade.
-
-## Config functions
-
-| Name | Comments |
-| :--  | :--      |
-| [toggle-winbg](config-functions/toggle-winbg) | Toggle the window background color |
-
-For config function submissions please use the following format:
-
-* name-[BASE].h
-
-`[BASE]` corresponds to either the version or the seven chars git commit
-short hash corresponding to the last commit on which the patch can be
-applied correctly and is tested to work with.
-
-If your patch's scope is more than adding a bindable config function exclusively
-in `config.h`, it should be submitted as a community patch, not config function.
+NOTE: All patches and scripts in this repository are community submitted and
+maintained. Mainline nsxiv does not make any guarantee that there won't be
+merge conflicts or broken functionality on upgrade.
 
 ## Community patches
 
