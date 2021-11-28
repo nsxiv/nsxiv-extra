@@ -29,8 +29,8 @@ control modifier.
 ```c
 static void run_key_handler(const char *, unsigned int);
 bool cg_send_with_ctrl(arg_t key) {
-    run_key_handler(XKeysymToString(key), ControlMask);
-    return false;
+	run_key_handler(XKeysymToString(key), ControlMask);
+	return false;
 }
 ```
 
@@ -40,9 +40,9 @@ the key handler:
 ```c
 #define g_send_with_ctrl { cg_send_with_ctrl, MODE_ALL }
 static const keymap_t keys[] = {
-    ...
-    { 0,            XK_z,             g_send_with_ctrl,     XK_Kanji },
-    ...
+	/* ... */
+	{ 0,            XK_z,             g_send_with_ctrl,     XK_Kanji },
+	/* ... */
 }
 ```
 
