@@ -38,7 +38,8 @@ index f2b3b09..1be574a 100644
  bool img_zoom(img_t *img, int d)
  {
  	int i = d > 0 ? 0 : ARRLEN(zoom_levels)-1;
-+	img->zoom = files[fileidx].zoom;
++	if(files[fileidx].zoom)
++		img->zoom = files[fileidx].zoom;
  	while (i >= 0 && i < ARRLEN(zoom_levels) && (d > 0 ?
  	       zoom_levels[i]/100 <= img->zoom : zoom_levels[i]/100 >= img->zoom))
  	{
