@@ -27,10 +27,9 @@ function located in [main.c](main.c) to send the key handler a key with the
 control modifier.
 
 ```c
-static void run_key_handler(const char *, unsigned int);
+static bool run_key_handler(const char *, unsigned int);
 bool cg_send_with_ctrl(arg_t key) {
-	run_key_handler(XKeysymToString(key), ControlMask);
-	return false;
+	return run_key_handler(XKeysymToString(key), ControlMask);
 }
 ```
 
