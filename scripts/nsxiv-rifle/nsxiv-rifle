@@ -9,7 +9,8 @@ listfiles() {
 }
 
 is_img() {
-  case "${1##*.}" in
+  local ext="${1##*.}"
+  case ${ext,,} in
     "jpg"|"jpeg"|"png"|"gif"|"webp"|"tiff"|"bmp") return 0 ;;
     *) return 1 ;;
   esac
