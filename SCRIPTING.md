@@ -1,4 +1,4 @@
-# Sripting
+# Scripting
 
 These are a couple small one liner tips and tricks which you can incorporate
 into your personal scripts.
