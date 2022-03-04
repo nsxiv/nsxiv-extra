@@ -9,7 +9,7 @@ listfiles() {
 }
 
 is_img() {
-  case "${1##*.}" in
+  case "$(printf '%s' "${1##*.}" | tr '[:upper:]' '[:lower:]')" in
     "jpg"|"jpeg"|"png"|"gif"|"webp"|"tiff"|"bmp") return 0 ;;
     *) return 1 ;;
   esac
