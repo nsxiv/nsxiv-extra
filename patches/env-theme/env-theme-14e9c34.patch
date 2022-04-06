@@ -1,0 +1,98 @@
+From 968d7d3c5ad58c1cb487c311c20a7ec6f4860f9c Mon Sep 17 00:00:00 2001
+From: p-kolacz <piotr@kolacz.org>
+Date: Sun, 3 Apr 2022 22:46:32 +0200
+Subject: [PATCH] Theme from environment variables.
+
+---
+ .gitignore   |  1 +
+ config.def.h | 18 ++++++++++++------
+ window.c     | 20 ++++++++++++++------
+ 3 files changed, 27 insertions(+), 12 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index b0c09282..a3ee7ff0 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -4,3 +4,4 @@ version.h
+ *.o
+ nsxiv
+ icon/img2data
++tags
+diff --git a/config.def.h b/config.def.h
+index 1e102fee..cc57ebb9 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -7,13 +7,19 @@ static const int WIN_HEIGHT = 600;
+ /* colors and font can be overwritten via X resource properties.
+  * See nsxiv(1), X(7) section Resources and xrdb(1) for more information.
+  */
+-static const char *DEFAULT_WIN_BG     = "white";
+-static const char *DEFAULT_WIN_FG     = "black";
+-static const char *DEFAULT_MARK_COLOR = NULL;  /* NULL means it will default to window foreground */
++static const char *DEFAULT_WIN_BG      = "white";
++static const char *DEFAULT_WIN_FG      = "black";
++static const char *DEFAULT_MARK_COLOR  = NULL;  /* NULL means it will default to window foreground */
++static const char *WIN_BG_ENV_NAME     = "NSXIV_BG";
++static const char *WIN_FG_ENV_NAME     = "NSXIV_FG";
++static const char *MARK_COLOR_ENV_NAME = "NSXIV_MARK_COLOR";
+ #if HAVE_LIBFONTS
+-static const char *DEFAULT_BAR_BG     = NULL;  /* NULL means it will default to window background */
+-static const char *DEFAULT_BAR_FG     = NULL;  /* NULL means it will default to window foreground */
+-static const char *DEFAULT_FONT       = "monospace-8";
++static const char *DEFAULT_BAR_BG      = NULL;  /* NULL means it will default to window background */
++static const char *DEFAULT_BAR_FG      = NULL;  /* NULL means it will default to window foreground */
++static const char *DEFAULT_FONT        = "monospace-8";
++static const char *BAR_BG_ENV_NAME     = "NSXIV_BAR_BG";
++static const char *BAR_FG_ENV_NAME     = "NSXIV_BAR_FB";
++static const char *FONT_ENV_NAME       = "NSXIV_FONT";
+ 
+ /* if true, statusbar appears on top of the window */
+ static const bool TOP_STATUSBAR = false;
+diff --git a/window.c b/window.c
+index b4b9c41f..e05ca345 100644
+--- a/window.c
++++ b/window.c
+@@ -109,8 +109,10 @@ void win_init(win_t *win)
+ {
+ 	win_env_t *e;
+ 	const char *win_bg, *win_fg, *mrk_fg;
++	const char *env_win_bg, *env_win_fg, *env_mrk_fg;
+ #if HAVE_LIBFONTS
+ 	const char *bar_fg, *bar_bg, *f;
++	const char *env_bar_fg, *env_bar_bg, *env_f;
+ #endif
+ 	char *res_man;
+ 	XrmDatabase db;
+@@ -135,20 +137,26 @@ void win_init(win_t *win)
+ 	res_man = XResourceManagerString(e->dpy);
+ 	db = res_man == NULL ? NULL : XrmGetStringDatabase(res_man);
+ 
+-	win_bg = win_res(db, RES_CLASS ".window.background", DEFAULT_WIN_BG);
+-	win_fg = win_res(db, RES_CLASS ".window.foreground", DEFAULT_WIN_FG);
+-	mrk_fg = win_res(db, RES_CLASS ".mark.foreground",   DEFAULT_MARK_COLOR ? DEFAULT_MARK_COLOR : win_fg);
++	env_win_bg = getenv(WIN_BG_ENV_NAME);
++	env_win_fg = getenv(WIN_FG_ENV_NAME);
++	env_mrk_fg = getenv(MARK_COLOR_ENV_NAME);
++	win_bg = win_res(db, RES_CLASS ".window.background", env_win_bg ? env_win_bg : DEFAULT_WIN_BG);
++	win_fg = win_res(db, RES_CLASS ".window.foreground", env_win_fg ? env_win_fg : DEFAULT_WIN_FG);
++	mrk_fg = win_res(db, RES_CLASS ".mark.foreground",   env_mrk_fg ? env_mrk_fg : (DEFAULT_MARK_COLOR ? DEFAULT_MARK_COLOR : win_fg));
+ 	win_alloc_color(e, win_bg, &win->win_bg);
+ 	win_alloc_color(e, win_fg, &win->win_fg);
+ 	win_alloc_color(e, mrk_fg, &win->mrk_fg);
+ 
+ #if HAVE_LIBFONTS
+-	bar_bg = win_res(db, RES_CLASS ".bar.background", DEFAULT_BAR_BG ? DEFAULT_BAR_BG : win_bg);
+-	bar_fg = win_res(db, RES_CLASS ".bar.foreground", DEFAULT_BAR_FG ? DEFAULT_BAR_FG : win_fg);
++	env_bar_bg = getenv(BAR_BG_ENV_NAME);
++	env_bar_fg = getenv(BAR_FG_ENV_NAME);
++	bar_bg = win_res(db, RES_CLASS ".bar.background", env_bar_bg ? env_bar_bg : (DEFAULT_BAR_BG ? DEFAULT_BAR_BG : win_bg));
++	bar_fg = win_res(db, RES_CLASS ".bar.foreground", env_bar_fg ? env_bar_fg : (DEFAULT_BAR_FG ? DEFAULT_BAR_FG : win_fg));
+ 	xft_alloc_color(e, bar_bg, &win->bar_bg);
+ 	xft_alloc_color(e, bar_fg, &win->bar_fg);
+ 
+-	f = win_res(db, RES_CLASS ".bar.font", DEFAULT_FONT);
++	env_f = getenv(FONT_ENV_NAME);
++	f = win_res(db, RES_CLASS ".bar.font", env_f ? env_f : DEFAULT_FONT);
+ 	win_init_font(e, f);
+ 
+ 	win->bar.l.size = BAR_L_LEN;

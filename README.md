@@ -26,6 +26,7 @@ merge conflicts or broken functionality on upgrade.
 | :--  | :--      |
 | [alpha](patches/alpha) | Add alpha/transparency to nsxiv |
 | [dmenu-mode](patches/dmenu-mode) | Add dmenu mode to nsxiv |
+| [env-theme](patches/env-theme) | Change colors and font via env variables |
 | [image-mode-cycle](patches/image-mode-cycle) | Cycle when viewing multiple images |
 | [toggle-winbg](patches/toggle-winbg) | Keybinding to toggle the window background color |
 | [zoom-per-image](patches/zoom-per-image) | Remember what the zoom for image was |
