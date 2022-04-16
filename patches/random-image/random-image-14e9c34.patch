@@ -1,0 +1,59 @@
+diff --git a/commands.c b/commands.c
+index 19d2abe..40fd576 100644
+--- a/commands.c
++++ b/commands.c
+@@ -496,3 +496,22 @@ bool ct_select(arg_t _)
+ 
+ 	return dirty;
+ }
++
++bool cg_random(arg_t _)
++{
++  int n = fileidx;
++  while (n == fileidx && filecnt >= 2) {
++    n = rand() % filecnt;
++  }
++
++	if (mode == MODE_IMAGE && fileidx != n) {
++		load_image(n);
++		return true;
++	} else if (mode == MODE_THUMB && fileidx != n) {
++		fileidx = n;
++		tns.dirty = true;
++		return true;
++	} else {
++		return false;
++	}
++}
+diff --git a/commands.h b/commands.h
+index b78157d..652fea4 100644
+--- a/commands.h
++++ b/commands.h
+@@ -20,6 +20,7 @@ bool cg_toggle_fullscreen(arg_t);
+ bool cg_toggle_image_mark(arg_t);
+ bool cg_unmark_all(arg_t);
+ bool cg_zoom(arg_t);
++bool cg_random(arg_t);
+ /* image mode */
+ bool ci_alternate(arg_t);
+ bool ci_cursor_navigate(arg_t);
+@@ -62,6 +63,7 @@ bool ct_select(arg_t);
+ #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
+ #define g_unmark_all { cg_unmark_all, MODE_ALL }
+ #define g_zoom { cg_zoom, MODE_ALL }
++#define g_random { cg_random, MODE_ALL }
+ 
+ /* image mode */
+ #define i_alternate { ci_alternate, MODE_IMAGE }
+diff --git a/config.def.h b/config.def.h
+index 1e102fe..b213dfc 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -148,7 +148,8 @@ static const keymap_t keys[] = {
+ 	{ 0,            XK_K,             i_scroll_to_edge,     DIR_UP },
+ 	{ 0,            XK_L,             i_scroll_to_edge,     DIR_RIGHT },
+ 	{ 0,            XK_z,             i_scroll_to_center,   None },
++	{ 0,            XK_Z,             g_random,             None },
+ 	{ 0,            XK_equal,         i_set_zoom,           100 },
+ 	{ 0,            XK_w,             i_fit_to_win,         SCALE_DOWN },
+ 	{ 0,            XK_W,             i_fit_to_win,         SCALE_FIT },
