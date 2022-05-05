@@ -29,6 +29,7 @@ merge conflicts or broken functionality on upgrade.
 | [env-theme](patches/env-theme) | Change colors and font via env variables |
 | [image-mode-cycle](patches/image-mode-cycle) | Cycle when viewing multiple images |
 | [load-dir](patches/load-dir) | Load the entire directory |
+| [nav-dir](patches/nav-dir) | Jump to next/prev directory |
 | [random-image](patches/random-image) | Switch to a random image |
 | [toggle-winbg](patches/toggle-winbg) | Keybinding to toggle the window background color |
 | [zoom-per-image](patches/zoom-per-image) | Remember what the zoom for image was |
