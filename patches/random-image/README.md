@@ -1,4 +1,4 @@
-# env-theme
+# random-image
 
 This patch adds a key binding (default <kbd>Z</kbd>) to switch
 to a random image.
