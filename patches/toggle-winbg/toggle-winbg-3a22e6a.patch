@@ -1,4 +1,4 @@
-From 192a8f18b7bfd2cdad5929f9ed0aba95ef39930f Mon Sep 17 00:00:00 2001
+From 751b3186e5a4870397d3bbe9e3be1ebb86ea0b99 Mon Sep 17 00:00:00 2001
 From: NRK <nrk@disroot.org>
 Date: Fri, 26 Nov 2021 16:36:41 +0600
 Subject: [PATCH] add keybinding to toggle window background color
@@ -10,10 +10,10 @@ Subject: [PATCH] add keybinding to toggle window background color
  3 files changed, 13 insertions(+)
 
 diff --git a/commands.c b/commands.c
-index f44cee1..306fcbd 100644
+index 9ee83ec..3478bed 100644
 --- a/commands.c
 +++ b/commands.c
-@@ -266,6 +266,16 @@ bool cg_change_gamma(arg_t d)
+@@ -247,6 +247,16 @@ bool cg_change_gamma(arg_t d)
  	}
  }
  
@@ -31,18 +31,18 @@ index f44cee1..306fcbd 100644
  {
  	if (prefix > 0)
 diff --git a/commands.h b/commands.h
-index bc0e340..b103dbb 100644
+index 74e2638..064ccef 100644
 --- a/commands.h
 +++ b/commands.h
-@@ -20,6 +20,7 @@ bool cg_toggle_fullscreen();
- bool cg_toggle_image_mark();
- bool cg_unmark_all();
- bool cg_zoom();
-+bool cg_toggle_winbg();
+@@ -20,6 +20,7 @@ bool cg_toggle_fullscreen(arg_t);
+ bool cg_toggle_image_mark(arg_t);
+ bool cg_unmark_all(arg_t);
+ bool cg_zoom(arg_t);
++bool cg_toggle_winbg(arg_t);
  /* image mode */
- bool ci_alternate();
- bool ci_cursor_navigate();
-@@ -58,6 +59,7 @@ bool ct_reload_all();
+ bool ci_alternate(arg_t);
+ bool ci_cursor_navigate(arg_t);
+@@ -63,6 +64,7 @@ bool ct_select(arg_t);
  #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
  #define g_unmark_all { cg_unmark_all, MODE_ALL }
  #define g_zoom { cg_zoom, MODE_ALL }
@@ -51,10 +51,10 @@ index bc0e340..b103dbb 100644
  /* image mode */
  #define i_alternate { ci_alternate, MODE_IMAGE }
 diff --git a/config.def.h b/config.def.h
-index 99dd8ba..b3b9b45 100644
+index 1e102fe..e3aeea9 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -90,6 +90,7 @@ static const keymap_t keys[] = {
+@@ -86,6 +86,7 @@ static const keymap_t keys[] = {
  	{ 0,            XK_Return,        g_switch_mode,        None },
  	{ 0,            XK_f,             g_toggle_fullscreen,  None },
  	{ 0,            XK_b,             g_toggle_bar,         None },
@@ -63,5 +63,5 @@ index 99dd8ba..b3b9b45 100644
  	{ 0,            XK_g,             g_first,              None },
  	{ 0,            XK_G,             g_n_or_last,          None },
 -- 
-2.33.1
+2.35.1
 
