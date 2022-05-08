@@ -1,0 +1,14 @@
+pipeline:
+  apply-patches:
+    image: alpine
+    when:
+      branch: master
+    commands: |
+      apk add --no-cache git ca-certificates >/dev/null
+      git clone 'https://github.com/nsxiv/nsxiv.git'
+      for dir in "$PWD"/patches/*/; do
+        find "$dir" \( -name '*.patch' -o -name '*.diff' \) -print |
+        xargs -I{} -n 1 git log --format=format:'%ct {}%n' -- '{}' |
+        sort -nr | head -n 1 | cut -d ' ' -f 2
+      done | ( cd nsxiv && xargs -I{} /bin/sh -c 'if ! git apply --check {} 2>/dev/null; then echo "[FAILED]: $(basename {})"; touch FAIL; fi' )
+      [ -f "FAIL" ] && exit 1
