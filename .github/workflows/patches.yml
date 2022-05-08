@@ -17,9 +17,27 @@ jobs:
         sudo apt-get install git
         git clone 'https://github.com/nsxiv/nsxiv.git'
     - name: apply-patches
-      # FIXME: only apply the latest patch rather than everything
-      # TODO: exit with non-zero status if any of the patches fails to apply
       run: |
         cd nsxiv
         find ../patches -type f -name '*.patch' |
-          xargs -I{} /bin/sh -c 'git apply --check {} 2>/dev/null || echo "[FAILED]: $(basename {})"'
+          xargs -I{} -n 1 git log --format=format:'%at {}%n' -- '{}' |
+          sort -rn | {
+            while read -r timestamp patchpath; do
+              patchdir="${patchpath%/*}"
+              patchdir="${patchdir##*/}"
+
+              for applied in "$@"; do
+                if [ "$patchdir" = "$applied" ]; then
+                  continue 2
+                fi
+              done
+              # Append the patch directory name to the list
+              set -- "$@" "$patchdir"
+
+              git apply --check "$patchpath" 2>/dev/null || {
+                echo "[FAILED]: $(basename "$patchpath")"
+                fail=1
+              }
+              done
+              exit "${fail:-0}"
+            }
