@@ -20,7 +20,7 @@ jobs:
       run: |
         cd nsxiv
         find "$PWD"/../patches -type f -name '*.patch' |
-          xargs -I{} -n 1 git log --format=format:'%at {}%n' -- '{}' |
+          ( cd .. && xargs -I{} -n 1 git log --format=format:'%at {}%n' -- '{}' ) |
           sort -rn | {
             while read -r timestamp patchpath; do
               patchdir="${patchpath%/*}"
