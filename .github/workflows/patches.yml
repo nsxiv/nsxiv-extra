@@ -31,13 +31,12 @@ jobs:
                   continue 2
                 fi
               done
-              # Append the patch directory name to the list
               set -- "$@" "$patchdir"
 
-              git apply --check "$patchpath" 2>/dev/null || {
-                echo "[FAILED]: $(basename "$patchpath")"
+              if ! git apply --check "$patchpath" 2>/dev/null; then
+                echo "[FAILED]: $(basename "$patchpath")" >&2
                 fail=1
-              }
-              done
-              exit "${fail:-0}"
-            }
+              fi
+            done
+            exit "${fail:-0}"
+          }
