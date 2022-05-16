@@ -18,25 +18,9 @@ jobs:
         git clone 'https://github.com/nsxiv/nsxiv.git'
     - name: apply-patches
       run: |
-        cd nsxiv
-        find "$PWD"/../patches -type f -name '*.patch' |
-          ( cd .. && xargs -I{} -n 1 git log --format=format:'%at {}%n' -- '{}' ) |
-          sort -rn | {
-            while read -r timestamp patchpath; do
-              patchdir="${patchpath%/*}"
-              patchdir="${patchdir##*/}"
+        for dir in "$PWD"/patches/*/; do
+          find "$dir" \( -name '*.patch' -o -name '*.diff' \) -print |
+          xargs -I{} -n 1 git log --format=format:'%at {}%n' -- '{}' |
+          sort -nr | head -n 1 | cut -d ' ' -f 2
+        done | ( cd nsxiv && xargs -I{} /bin/sh -c 'if ! git apply --check {} 2>/dev/null; then echo "[FAILED]: $(basename {})"; fi' )
 
-              for applied in "$@"; do
-                if [ "$patchdir" = "$applied" ]; then
-                  continue 2
-                fi
-              done
-              set -- "$@" "$patchdir"
-
-              if ! git apply --check "$patchpath" 2>/dev/null; then
-                echo "[FAILED]: $(basename "$patchpath")" >&2
-                fail=1
-              fi
-            done
-            exit "${fail:-0}"
-          }
