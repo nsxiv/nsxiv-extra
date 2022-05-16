@@ -20,7 +20,7 @@ jobs:
       run: |
         for dir in "$PWD"/patches/*/; do
           find "$dir" \( -name '*.patch' -o -name '*.diff' \) -print |
-          xargs -I{} -n 1 git log --format=format:'%at {}%n' -- '{}' |
+          xargs -I{} -n 1 git log --format=format:'%ct {}%n' -- '{}' |
           sort -nr | head -n 1 | cut -d ' ' -f 2
         done | ( cd nsxiv && xargs -I{} /bin/sh -c 'if ! git apply --check {} 2>/dev/null; then echo "[FAILED]: $(basename {})"; fi' )
 
