@@ -1,9 +1,12 @@
 #!/usr/bin/env sh
 
-tmpdir="$(mktemp -d)" || {
-    printf "%s: %s\n" "${0##*/}" "could not create temporary directory"
-    exit 1
-}
+! command -v mktemp > /dev/null 2>&1 \
+    || ! tmpdir="$(mktemp -d)" \
+    || [ -z "$tmpdir" ] \
+    && {
+        tmpdir="${TMPDIR:-/tmp}/nsxiv_$$"
+        mkdir -p -- "$tmpdir"
+    }
 trap 'rm -rf -- "$tmpdir"' TERM INT EXIT
 
 find '.' \( -type f -o -type l \) -print \
