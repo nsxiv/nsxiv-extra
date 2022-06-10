@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+
+tmpdir="$(mktemp -d)" || {
+    printf "%s: %s\n" "${0##*/}" "could not create temporary directory"
+    exit 1
+}
+trap 'rm -rf -- "$tmpdir"' TERM INT EXIT
+
+find '.' \( -type f -o -type l \) -print \
+    | xargs file -L --mime-type -- \
+    | grep ': image/.*$' \
+    | sed 's|: image/.*$||' \
+    | sort \
+    | xargs -I FILE ffmpegthumbnailer -i FILE -o "$tmpdir/FILE.jpg" -m -s 384
+
+{ nsxiv -ot -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
+    | sed 's|.jpg$||;s|^.*/||' \
+    | xargs -I FILE xdg-open ./FILE
