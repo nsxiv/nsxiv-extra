@@ -7,6 +7,8 @@ tmpdir="$(mktemp -d)" || {
 trap 'rm -rf -- "$tmpdir"' TERM INT EXIT
 
 find '.' \( -type f -o -type l \) -print \
+    | sed 's|^\./||' \
+    | grep -v '/' \
     | xargs file -L --mime-type -- \
     | grep ': image/.*$' \
     | sed 's|: image/.*$||' \
