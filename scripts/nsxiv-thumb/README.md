@@ -10,6 +10,7 @@ according to the current locale.
 Dependencies for non-POSIX version:
 - `ffmpegthumbnailer`
 - `xdg-open`
+- `mktemp` with `-d` flag
 - `sed` and `sort` with `-z` flag
 - `xargs` with `-rnP0` flags
 - `find` with `-mindepth`, `-maxdepth` and `-printf` flags
