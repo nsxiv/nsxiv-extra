@@ -12,12 +12,18 @@ trap 'rm -rf -- "$tmpdir"' TERM INT EXIT
 find '.' \( -type f -o -type l \) -print \
     | sed 's|^\./||' \
     | grep -v '/' \
-    | xargs file -L --mime-type -- \
-    | grep ': image/.*$' \
-    | sed 's|: image/.*$||' \
+    | while IFS= read -r file; do
+        file -L --mime-type -- "$file"
+    done \
+    | grep ': video/.*$' \
+    | sed 's|: video/.*$||' \
     | sort \
-    | xargs -I FILE ffmpegthumbnailer -i FILE -o "$tmpdir/FILE.jpg" -m -s 384
+    | while IFS= read -r file; do
+        ffmpegthumbnailer -i "$file" -o "$tmpdir/$file.jpg" -m -s 384
+    done
 
 { nsxiv -ot -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
     | sed 's|.jpg$||;s|^.*/||' \
-    | xargs -I FILE xdg-open ./FILE
+    | while IFS= read -r file; do
+        xdg-open ./"$file"
+    done
