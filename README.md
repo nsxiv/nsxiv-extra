@@ -1,20 +1,18 @@
 # nsxiv-extra
 
-This repo is be used for hosting community patches, user scripts, tips and
-tricks, etc.
+[![CodeBerg](https://img.shields.io/badge/Hosted_at-Codeberg-%232185D0?style=flat-square&logo=CodeBerg)](https://codeberg.org/nsxiv/nsxiv-extra)
+
+[This repo](https://codeberg.org/nsxiv/nsxiv-extra) is used for hosting
+community patches, user scripts, tips and tricks, etc.
 
 * For information on nsxiv, please consult the
-  [nsxiv readme](https://github.com/nsxiv/nsxiv).
+  [nsxiv readme](https://codeberg.org/nsxiv/nsxiv).
 * For information on how to manage patches and customization, please see
   [CUSTOMIZATION](CUSTOMIZATION.md).
 * For general tips and tricks on scripting with nsxiv, please see
   [SCRIPTING](SCRIPTING.md).
 
 - - -
-
-Feel free to add yourself to the list of "Authors" if you contribute to
-anything. You may also add some form of contact detail if you wish
-(preferably email, but can be anything else).
 
 NOTE: All patches and scripts in this repository are community submitted and
 maintained. Mainline nsxiv does not make any guarantee that there won't be
@@ -69,3 +67,15 @@ be worked on. If you run into any problems with any of the patches/scripts, try 
 fix it yourself and submit a pull request.
 
 You may also open an issue for a request, but as stated above, there's no guarantee.
+
+***NOTE***: Issues should be opened at [codeberg](https://codeberg.org/nsxiv/nsxiv-extra/issues)
+
+## Contributing
+
+To contribute, sumbit a pull request at [codeberg](https://codeberg.org/nsxiv/nsxiv-extra/pulls).
+Alternatively you may e-mail the patch (obtained via `git format-patch`) to any
+of the [active maintainers](https://nsxiv.codeberg.page/man/#CURRENT%20MAINTAINERS) instead.
+
+Feel free to add yourself to the list of "Authors" if you contribute to
+anything. You may also add some form of contact detail if you wish
+(preferably email, but can be anything else).

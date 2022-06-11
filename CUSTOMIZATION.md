@@ -23,7 +23,7 @@ the default value of the `ANTI_ALIAS` variable is `true`. You could set it to
 The second way is writing custom functions. In these functions, you may interact
 with other components of nsxiv to implement macros, bindings or other
 functionality. For instance, the following snippet calls the `run_key_handler`
-function located in [main.c](https://github.com/nsxiv/nsxiv/blob/master/main.c)
+function located in [main.c](https://codeberg.org/nsxiv/nsxiv/src/branch/master/main.c)
 to send the key handler a key with the control modifier.
 
 ```c

@@ -1,0 +1,21 @@
+name: 'Repo Lockdown'
+
+on:
+  pull_request_target:
+    types: opened
+
+permissions:
+  pull-requests: write
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/repo-lockdown@v2
+        with:
+          pr-comment: >
+            Hi, thanks for the Pull-Request.
+            However this repository is a read-only mirror.
+            Please open your Pull-Request over at the [CodeBerg Repo](https://codeberg.org/nsxiv/nsxiv-extra).
+            Otherwise you may also e-mail the patch (obtained via `git format-patch`) to any of the [active maintainers](https://nsxiv.codeberg.page/man/#CURRENT%20MAINTAINERS) instead.
+
