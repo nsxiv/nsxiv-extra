@@ -16,6 +16,6 @@ find '.' -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -printf "%P\0" \
     | sort -z \
     | xargs -r0 -I FILE ffmpegthumbnailer -i FILE -o "$tmpdir/FILE.jpg" -m -s 384
 
-{ nsxiv -0ot -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
+{ nsxiv -0otp -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
     | sed -z 's|.jpg$||;s|^.*/||' \
     | xargs -r0 -I FILE xdg-open ./FILE

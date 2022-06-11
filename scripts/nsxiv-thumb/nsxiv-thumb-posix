@@ -22,7 +22,7 @@ find '.' \( -type f -o -type l \) -print \
         ffmpegthumbnailer -i "$file" -o "$tmpdir/$file.jpg" -m -s 384
     done
 
-{ nsxiv -ot -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
+{ nsxiv -otp -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
     | sed 's|.jpg$||;s|^.*/||' \
     | while IFS= read -r file; do
         xdg-open ./"$file"
