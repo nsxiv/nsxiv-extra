@@ -24,14 +24,14 @@ find '.' \( -type f -o -type l \) -print \
     | while IFS= read -r file; do
         file="${file##./}"
         [ "$file" != "${file##*/}" ] && continue
-        realpath="$(stat -F "%R" -- "$file")"
+        realpath="$(stat -f "%R" -- "$file")"
 
         case "$(file -b --mime-type -- "$realpath")" in
             video/*) :;;
             *) exit 0;;
         esac
         
-        hash="$(stat -f "%T%i%N%z%B%m" -- "$realpath" | sha512sum | cut -d" " -f1)"
+        hash="$(stat -f "%T%i%N%z%B%m" -- "$realpath" | md5 | cut -d" " -f1)"
         thumbfl="$CACHEDIR/$hash.$EXT"
         [ -f "$thumbfl" ] || ffmpegthumbnailer -i "$file" -o "$thumbfl" -m -s 384 2> /dev/null
         cp -- "$thumbfl" "$tmpdir/$file.$EXT"
