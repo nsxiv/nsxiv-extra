@@ -13,7 +13,7 @@ Atypical dependencies for the Linux version are:
 Dependencies not specified by POSIX for the \*BSD version are:
 - `ffmpegthumbnailer`
 - `file` with `-b` and `--mime-type` flags
-- `sha512sum`
+- `md5`
 - `stat` with `-f` flag
 
 You can change what to open the files with by setting the `OPENER` variable in
