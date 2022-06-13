@@ -3,16 +3,16 @@
 cache_dir="${TMPDIR:-/tmp}/nsxiv"
 
 die() {
-  [ -n "$1" ] && printf '%s\n' "$*" >&2;
-  exit 1
+    [ -n "$1" ] && printf '%s\n' "$*" >&2;
+    exit 1
 }
 
 cleanup() {
-  rm -f -- "$cache_dir"/*
+    rm -f -- "$cache_dir"/*
 }
 
 get_image() (
-  cd "$cache_dir" && curl -sSLO "$1"
+    cd "$cache_dir" && curl -sSLO "$1"
 )
 
 ### main ###
@@ -21,12 +21,12 @@ get_image() (
 trap cleanup EXIT
 [ -d "$cache_dir" ] || mkdir -p -- "$cache_dir" || die
 while [ -n "$1" ]; do
-  case "$1" in
-    *://*.*) get_image "$1" ;;
-    *) echo "Invalid url: $1" >&2 ;;
-  esac
-  shift
+    case "$1" in
+        *://*.*) get_image "$1" ;;
+        *) echo "Invalid url: $1" >&2 ;;
+    esac
+    shift
 done
 
 [ "$(find "$cache_dir" -type f -print | wc -l)" -ne 0 ] &&
-  nsxiv -p "$cache_dir"
+    nsxiv -p "$cache_dir"
