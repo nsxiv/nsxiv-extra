@@ -60,16 +60,6 @@ them to fit their use-cases.
 For script submissions, it is highly encouraged (but not required) to use POSIX
 `sh` rather than `bash`, `zsh`, `Python`, etc.
 
-## Issues
-
-Since this repo is community maintained there's no guarantee that an issue will
-be worked on. If you run into any problems with any of the patches/scripts, try to
-fix it yourself and submit a pull request.
-
-You may also open an issue for a request, but as stated above, there's no guarantee.
-
-***NOTE***: Issues should be opened at [codeberg](https://codeberg.org/nsxiv/nsxiv-extra/issues)
-
 ## Contributing
 
 To contribute, sumbit a pull request at [codeberg](https://codeberg.org/nsxiv/nsxiv-extra/pulls).
@@ -79,3 +69,13 @@ of the [active maintainers](https://nsxiv.codeberg.page/man/#CURRENT%20MAINTAINE
 Feel free to add yourself to the list of "Authors" if you contribute to
 anything. You may also add some form of contact detail if you wish
 (preferably email, but can be anything else).
+
+## Issues
+
+Since this repo is community maintained there's no guarantee that an issue will
+be worked on. If you run into any problems with any of the patches/scripts, try to
+fix it yourself and submit a pull request.
+
+You may also open an issue for a request, but as stated above, there's no guarantee.
+
+***NOTE***: Issues should be opened at [codeberg](https://codeberg.org/nsxiv/nsxiv-extra/issues)
