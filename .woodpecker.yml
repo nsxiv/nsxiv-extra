@@ -1,3 +1,5 @@
+branches: master
+
 pipeline:
   apply-patches:
     image: alpine
@@ -10,5 +12,3 @@ pipeline:
         sort -nr | head -n 1 | cut -d ' ' -f 2
       done | ( cd nsxiv && xargs -I{} /bin/sh -c 'if ! git apply --check {} 2>/dev/null; then echo "[FAILED]: $(basename {})"; touch FAIL; fi' )
       [ -f "FAIL" ] && exit 1
-
-branches: master
