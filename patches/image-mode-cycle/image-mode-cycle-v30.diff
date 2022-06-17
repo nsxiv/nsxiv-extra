@@ -1,0 +1,16 @@
+diff --git a/commands.c b/commands.c
+index 2c4f4a7..019ffd6 100644
+--- a/commands.c
++++ b/commands.c
+@@ -253,7 +253,10 @@ bool ci_navigate(arg_t n)
+ 	if (prefix > 0)
+ 		n *= prefix;
+ 	n += fileidx;
+-	n = MAX(0, MIN(n, filecnt - 1));
++	if (n < 0)
++		n = filecnt - 1;
++	if (n >= filecnt)
++		n = 0;
+ 
+ 	if (n != fileidx) {
+ 		load_image(n);
