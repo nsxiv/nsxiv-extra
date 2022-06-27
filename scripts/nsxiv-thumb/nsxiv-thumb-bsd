@@ -3,7 +3,8 @@
 set -e
 
 OPENER="${OPENER:-"xdg-open"}"
-CACHEDIR="${XDG_CACHE_HOME:-"$HOME/.cache"}/nsxiv-extra/nsxiv-thumb"
+CACHEDIR="${NSXIV_THUMB_CACHE_DIR:-"${XDG_CACHE_HOME:-"$HOME/.cache"}/nsxiv-extra/nsxiv-thumb"}"
+# extension of thumbnails. can be jpg or png.
 EXT="jpg"
 
 [ "$#" -gt 0 ] && {

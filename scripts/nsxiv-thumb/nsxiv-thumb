@@ -3,9 +3,11 @@
 set -e
 
 OPENER="${OPENER:-"xdg-open"}"
-CACHEDIR="${XDG_CACHE_HOME:-"$HOME/.cache"}/nsxiv-extra/nsxiv-thumb"
+CACHEDIR="${NSXIV_THUMB_CACHE_DIR:-"${XDG_CACHE_HOME:-"$HOME/.cache"}/nsxiv-extra/nsxiv-thumb"}"
+# extension of thumbnails. can be jpg or png.
 EXT="jpg"
-MAXPROCS="$(($(nproc) * 4))" # maximum number of processes. 0 is as many as your system can handle.
+# maximum number of processes. 0 is as many as your system can handle.
+MAXPROCS="${NSXIV_THUMB_MAX_PROCS:-"$(($(nproc) * 4))"}"
 
 [ "$#" -gt 0 ] && {
     cd "$1" || exit 1
