@@ -39,7 +39,9 @@ For patch submissions please use the following format:
 `name` is simply the name of the patch and `.ext` is the extension, which
 can be either `.diff` or `.patch`. `[BASE]` corresponds to either the version
 or the seven chars git commit short hash corresponding to the last commit on
-which the patch can be applied correctly and is tested to work with.
+which the patch can be applied correctly and is tested to work with. You can
+also see the output of the `apply-patches` pipeline on the last commit to see
+which patches fail to apply on upstream nsxiv.
 
 ## User scripts
 
