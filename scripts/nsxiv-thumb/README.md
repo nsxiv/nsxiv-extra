@@ -17,7 +17,8 @@ Dependencies not specified by POSIX for the \*BSD version are:
 - `stat` with `-f` flag
 
 You can change what to open the files with by setting the `OPENER` variable in
-the beginning of both scripts. Default is `$OPENER` or `xdg-open`.
+the beginning of both scripts. Default is `$OPENER` or `xdg-open`. Execute the
+script like `OPENER=echo nsxiv-thumb` to use it as a filter.
 
 ## Authors
 
