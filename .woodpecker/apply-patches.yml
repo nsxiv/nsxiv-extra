@@ -1,0 +1,7 @@
+branches: master
+
+pipeline:
+  apply-patches:
+    image: debian
+    commands: |
+      exec .woodpecker/apply-patches

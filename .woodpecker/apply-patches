@@ -1,0 +1,61 @@
+#!/usr/bin/env sh
+
+die() {
+    s="$1"
+    shift
+    printf "$s\n" "$@"
+    exit 1
+}
+
+searchversion() {
+    printf "%s\n" "$nsxivlog" | while IFS= read -r sh; do
+        eval "$sh"
+        [ "$patchver" = "$tag" ] || [ "${hash#"$patchver"}" != "$hash" ] && {
+            printf "%s: %s\n" "$dt" "$PWD/$patchname/$patchfl"
+            exit 0
+        }
+        false
+    done && return 0
+
+    printf "[WARNING]: No date found for patch %s, ignoring.\n" "$patchfl" >&2
+    return 1
+}
+
+apt-get -yqq update > /dev/null 2>&1 \
+    && apt-get -yqq install git > /dev/null 2>&1 \
+    && git clone -q 'https://codeberg.org/nsxiv/nsxiv.git' \
+    || die "apt-get or git failed."
+
+nsxivlog="$(
+    cd nsxiv
+    {   git for-each-ref --shell --format='dt=%(creatordate:unix) tag=%(refname:short)' 'refs/tags' | tac
+        git log --format="dt='%ct' hash='%H'"
+    } | sort -nr
+)"
+
+(
+    cd patches
+
+    find '.' -mindepth 1 -maxdepth 1 -type d -printf "%P\n" | while IFS= read -r patchname; do
+        find "$patchname" -type f \( -name "*.diff" -o -name "*.patch" \) -printf "%P\n" | while IFS= read -r patchfl; do
+            patchver="${patchfl#"$patchname-"}"
+            patchver="${patchver%".diff"}"
+            patchver="${patchver%".patch"}"
+
+            searchversion
+        done | sort -nr | head -n 1
+    done | sed 's/^[0-9]\+: //'
+) | (
+    ec="$?"
+    cd nsxiv
+
+    while IFS= read -r patch; do
+        git apply --check -- "$patch" 2>/dev/null || {
+            printf "[ERROR]: Failed applying patch %s.\n" "$(basename -- "$patch")"
+            ec=1
+        }
+    done
+
+    exit "$ec"
+)
+exit "$?"
