@@ -39,9 +39,7 @@ For patch submissions please use the following format:
 `name` is simply the name of the patch and `.ext` is the extension, which
 can be either `.diff` or `.patch`. `[BASE]` corresponds to either the version
 or the seven chars git commit short hash corresponding to the last commit on
-which the patch can be applied correctly and is tested to work with. You can
-also see the output of the `apply-patches` pipeline on the last commit to see
-which patches fail to apply on upstream nsxiv.
+which the patch can be applied correctly and is tested to work with.
 
 ## User scripts
 
@@ -64,9 +62,18 @@ For script submissions, it is highly encouraged (but not required) to use POSIX
 
 ## Contributing
 
-To contribute, sumbit a pull request at [codeberg](https://codeberg.org/nsxiv/nsxiv-extra/pulls).
+To contribute, sumbit a pull request at [CodeBerg][pr].
 Alternatively you may e-mail the patch (obtained via `git format-patch`) to any
-of the [active maintainers](https://nsxiv.codeberg.page/man/#CURRENT%20MAINTAINERS) instead.
+of the [active maintainers][am] instead.
+
+[pr]: https://codeberg.org/nsxiv/nsxiv-extra/pulls
+[am]: https://nsxiv.codeberg.page/man/#CURRENT%20MAINTAINERS
+
+One of easiest way to contribute is to look for failing patches and rebasing
+them on `nsxiv` master. Take a look at the [CodeBerg CI][ci] to get a list of
+failing patches.
+
+[ci]: https://ci.codeberg.org/nsxiv/nsxiv-extra/
 
 Feel free to add yourself to the list of "Authors" if you contribute to
 anything. You may also add some form of contact detail if you wish
@@ -80,4 +87,4 @@ fix it yourself and submit a pull request.
 
 You may also open an issue for a request, but as stated above, there's no guarantee.
 
-***NOTE***: Issues should be opened at [codeberg](https://codeberg.org/nsxiv/nsxiv-extra/issues)
+***NOTE***: Issues should be opened at [CodeBerg](https://codeberg.org/nsxiv/nsxiv-extra/issues)
