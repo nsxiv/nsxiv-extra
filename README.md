@@ -5,8 +5,9 @@
 [This repo](https://codeberg.org/nsxiv/nsxiv-extra) is used for hosting
 community patches, user scripts, tips and tricks, etc.
 
-* For information on nsxiv, please consult the
+* For general information on nsxiv, please consult the
   [nsxiv readme](https://codeberg.org/nsxiv/nsxiv).
+* For detailed information, please consult the [manpage](https://nsxiv.codeberg.page/man/).
 * For information on how to manage patches and customization, please see
   [CUSTOMIZATION](CUSTOMIZATION.md).
 
