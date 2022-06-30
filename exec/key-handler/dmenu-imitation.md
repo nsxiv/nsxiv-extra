@@ -1,3 +1,5 @@
+# `dmenu` Imitation
+
 ```sh
 "e")
     while IFS= read -r file; do
@@ -6,3 +8,7 @@
     kill $PPID
     ;;
 ```
+
+## Authors
+
+* eylles <ed.ylles1997@gmail.com>
