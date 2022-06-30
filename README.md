@@ -60,6 +60,11 @@ them to fit their use-cases.
 For script submissions, it is highly encouraged (but not required) to use POSIX
 `sh` rather than `bash`, `zsh`, `Python`, etc.
 
+## Exec excerpts
+
+Idioms, excerpts or full examples for `image-info`, `key-handler`, `thumb-info`
+and `win-title`.
+
 ## Contributing
 
 To contribute, sumbit a pull request at [CodeBerg][pr].

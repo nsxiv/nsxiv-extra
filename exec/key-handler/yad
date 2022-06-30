@@ -1,0 +1,6 @@
+# printing images with [yad](https://github.com/v1cont/yad)
+"p")
+    while IFS= read -r file; do
+        yad --print --type=image --filename="$file"
+    done
+    ;;
