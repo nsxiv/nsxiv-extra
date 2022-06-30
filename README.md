@@ -9,8 +9,6 @@ community patches, user scripts, tips and tricks, etc.
   [nsxiv readme](https://codeberg.org/nsxiv/nsxiv).
 * For information on how to manage patches and customization, please see
   [CUSTOMIZATION](CUSTOMIZATION.md).
-* For general tips and tricks on scripting with nsxiv, please see
-  [SCRIPTING](SCRIPTING.md).
 
 - - -
 
@@ -56,6 +54,7 @@ them to fit their use-cases.
 | [subtube](https://github.com/nagy135/subtube) | Watch subscribed youtubed videos. |
 | [nsxiv-pipe](scripts/nsxiv-pipe) | Pipe images into nsxiv |
 | [nsxiv-thumb](scripts/nsxiv-thumb) | Select videos to open in the current directory. |
+| [misc](scripts/MISC.md) | Misc oneliners and other useful scripts. |
 
 For script submissions, it is highly encouraged (but not required) to use POSIX
 `sh` rather than `bash`, `zsh`, `Python`, etc.
