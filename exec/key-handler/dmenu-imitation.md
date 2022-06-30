@@ -1,5 +1,7 @@
 # `dmenu` Imitation
 
+Imitate [`dmenu`](https://tools.suckless.org/dmenu/):
+
 ```sh
 "e")
     while IFS= read -r file; do

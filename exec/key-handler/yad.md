@@ -1,6 +1,6 @@
 # Print With `yad`
 
-Print images with [yad](https://github.com/v1cont/yad):
+Print images with [`yad`](https://github.com/v1cont/yad):
 
 ```sh
 "p")

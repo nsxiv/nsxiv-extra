@@ -2,13 +2,10 @@
 
 Crops 1% of the image via imagemagick.
 
-* Ctrl+' - crops the image along the bottom edge by 1%.
-
-* Ctrl+; - crops the image along the right edge by 1%.
-
-* Mod+' - crops the image along the top edge by 1%.
-
-* Mod+; - crops the image along the left edge by 1%.
+* `Ctrl+'`: crop the image along the bottom edge by 1%.
+* `Ctrl+;`: crop the image along the right edge by 1%.
+* `Mod+'`: crop the image along the top edge by 1%.
+* `Mod+;`: crop the image along the left edge by 1%.
 
 ```sh
 crop() {
@@ -27,4 +24,4 @@ crop() {
 
 ## Authors
 
-- Vasiliy Stelmachenok (ventureo@yandex.ru)
+* Vasiliy Stelmachenok <ventureo@yandex.ru>
