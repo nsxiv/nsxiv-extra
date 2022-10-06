@@ -1,0 +1,50 @@
+#!/usr/bin/env sh
+
+execname="$0"
+
+maxheight=256
+maxwidth=256
+nsxivexec="nsxiv"
+while getopts "H:hW:x:" OPT; do
+    case "$OPT" in
+        H) maxheight="$OPTARG";;
+        h)
+            printf "%s" \
+"$execname [OPTION]... [FILE]...
+Automatically toggle anti-aliasing for nsxiv based on image resolution.
+
+If any of the given images are larger than the given maximum dimensions, anti-aliasing is enabled. Otherwise, anti-aliasing is disabled.
+
+  -H  maximum image height. default is 256.
+  -h  show this help and exit
+  -W  maximum image width. default is 256.
+  -x  set nsxiv executable. default is nsxiv.
+"
+            exit 0
+            ;;
+        W) maxwidth="$OPTARG";;
+        x) nsxivexec="$OPTARG";;
+        *)
+            printf "Try '%s -h' for more information.\n" "$execname"
+            exit 1
+            ;;
+    esac
+done
+shift "$((OPTIND - 1))"
+
+antialias="=no"
+for fl; do
+    exif="$(exiftool -j -- "$fl")"
+
+    mime="$(printf "%s\n" "$exif" | jq -r '.[0].MIMEType' 2> /dev/null)" || continue
+    case "$mime" in
+        image/*) :;;
+        *) continue;;
+    esac
+
+    width="$(printf "%s\n" "$exif" | jq -r '.[0].ImageWidth' 2> /dev/null)" || continue
+    height="$(printf "%s\n" "$exif" | jq -r '.[0].ImageHeight' 2> /dev/null)" || continue
+    [ "$width" -gt "$maxwidth" ] || [ "$height" -gt "$maxheight" ] && antialias=""
+done
+
+exec "$nsxivexec" "--anti-alias$antialias" -- "$@"
