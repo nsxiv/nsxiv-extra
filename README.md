@@ -1,6 +1,6 @@
 # nsxiv-extra
 
-[![CodeBerg](https://img.shields.io/badge/Hosted_at-Codeberg-%232185D0?style=flat-square&logo=CodeBerg)](https://codeberg.org/nsxiv/nsxiv-extra)
+[![Codeberg](https://img.shields.io/badge/Hosted_at-Codeberg-%232185D0?style=flat-square&logo=Codeberg)](https://codeberg.org/nsxiv/nsxiv-extra)
 
 [This repo](https://codeberg.org/nsxiv/nsxiv-extra) is used for hosting
 community patches, user scripts, tips and tricks, etc.
@@ -67,7 +67,7 @@ and `win-title`.
 
 ## Contributing
 
-To contribute, sumbit a pull request at [CodeBerg][pr].
+To contribute, sumbit a pull request at [Codeberg][pr].
 Alternatively you may e-mail the patch (obtained via `git format-patch`) to any
 of the [active maintainers][am] instead.
 
@@ -75,7 +75,7 @@ of the [active maintainers][am] instead.
 [am]: https://nsxiv.codeberg.page/man/#CURRENT%20MAINTAINERS
 
 One of easiest way to contribute is to look for failing patches and rebasing
-them on `nsxiv` master. Take a look at the [CodeBerg CI][ci] to get a list of
+them on `nsxiv` master. Take a look at the [Codeberg CI][ci] to get a list of
 failing patches.
 
 [ci]: https://ci.codeberg.org/nsxiv/nsxiv-extra/
@@ -92,4 +92,4 @@ fix it yourself and submit a pull request.
 
 You may also open an issue for a request, but as stated above, there's no guarantee.
 
-***NOTE***: Issues should be opened at [CodeBerg](https://codeberg.org/nsxiv/nsxiv-extra/issues)
+***NOTE***: Issues should be opened at [Codeberg](https://codeberg.org/nsxiv/nsxiv-extra/issues)
