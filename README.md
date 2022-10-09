@@ -55,6 +55,7 @@ them to fit their use-cases.
 | [subtube](https://github.com/nagy135/subtube) | Watch subscribed youtubed videos. |
 | [nsxiv-pipe](scripts/nsxiv-pipe) | Pipe images into nsxiv |
 | [nsxiv-thumb](scripts/nsxiv-thumb) | Select videos to open in the current directory. |
+| [nsxiv-anti-alias](scripts/nsxiv-anti-alias) | Automatically toggle anti-aliasing based on image resolutions. |
 | [misc](scripts/MISC.md) | Misc oneliners and other useful scripts. |
 
 For script submissions, it is highly encouraged (but not required) to use POSIX
