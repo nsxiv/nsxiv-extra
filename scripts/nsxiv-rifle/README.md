@@ -14,6 +14,27 @@ decrease.
 +    find -L "///${1%/*}" \( ! -path "///${1%/*}" -prune \) -type f -print |
 ```
 
+### Sorting
+
+By default, `nsxiv-rifle` will sort the files alphabetically.
+Following are a couple more methods of sorting:
+
+* Natural sort (requires GNU sort)
+
+```diff
+-        is_img_extension | sort | tee "$tmp"
++        is_img_extension | sort -V | tee "$tmp"
+```
+
+* Sort by modification time (requires `stat`)
+
+```diff
+-    find -L "///${1%/*}" -maxdepth 1 -type f -print |
+-        is_img_extension | sort | tee "$tmp"
++    find -L "///${1%/*}" -maxdepth 1 -type f -exec stat -c '%Y %n' {} + |
++        sort -nr | cut -d' ' -f 2- | is_img_extension | tee "$tmp"
+```
+
 ### URI
 
 nsxiv-rifle can also handle `file://` and `trash://` URIs.
