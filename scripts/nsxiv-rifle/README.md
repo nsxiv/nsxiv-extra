@@ -9,8 +9,8 @@ Please make the following changes if `-maxdepth` is not available for you.
 This may cause slight performance decrease.
 
 ```diff
--    find -L "///${1%/*}" -maxdepth 1 -type f -print |
-+    find -L "///${1%/*}" \( ! -path "///${1%/*}" -prune \) -type f -print |
+-    find -L "$1" -maxdepth 1 -type f -print |
++    find -L "$1" \( ! -path "///${1%/*}" -prune \) -type f -print |
 ```
 
 [sxiv-rifle]: https://github.com/ranger/ranger/blob/master/examples/rifle_sxiv.sh
@@ -30,9 +30,9 @@ Following are a couple more methods of sorting:
 * Sort by modification time (requires `stat`)
 
 ```diff
--    find -L "///${1%/*}" -maxdepth 1 -type f -print |
+-    find -L "$1" -maxdepth 1 -type f -print |
 -        is_img_extension | sort | tee "$tmp"
-+    find -L "///${1%/*}" -maxdepth 1 -type f -exec stat -c '%Y %n' {} + |
++    find -L "$1" -maxdepth 1 -type f -exec stat -c '%Y %n' {} + |
 +        sort -nr | cut -d' ' -f 2- | is_img_extension | tee "$tmp"
 ```
 
