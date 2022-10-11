@@ -1,0 +1,85 @@
+From 00f6f4059b559b3b44c7d434f4918e7cb29de4bb Mon Sep 17 00:00:00 2001
+From: NRK <nrk@disroot.org>
+Date: Mon, 10 Oct 2022 22:54:41 +0600
+Subject: [PATCH 8/8] patch: whitelist cache dirs
+
+---
+ config.def.h | 10 ++++++++++
+ thumbs.c     | 26 +++++++++++++++++++++++++-
+ 2 files changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/config.def.h b/config.def.h
+index f8efe2a..f6fec03 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -77,6 +77,16 @@ static const int thumb_sizes[] = { 32, 64, 96, 128, 160 };
+ /* thumbnail size at startup, index into thumb_sizes[]: */
+ static const int THUMB_SIZE = 3;
+ 
++/* only cache the following dirs, the dir paths must be absolute. */
++#define HOME "/home/nrk/"
++static const char *const tns_whitelisted_dirs[] = {
++	HOME "pictures/",
++};
++/*
++ * 1 means that a directory and any other directory inside it will be whitelisted.
++ */
++#define WHITELIST_RECURSIVE 1
++
+ #endif
+ #ifdef INCLUDE_MAPPINGS_CONFIG
+ 
+diff --git a/thumbs.c b/thumbs.c
+index 40a3d93..eb545a1 100644
+--- a/thumbs.c
++++ b/thumbs.c
+@@ -21,6 +21,7 @@
+ #define INCLUDE_THUMBS_CONFIG
+ #include "config.h"
+ 
++#include <assert.h>
+ #include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -35,6 +36,29 @@
+ 
+ static char *cache_dir;
+ 
++static bool tns_is_whitelisted(const char *filepath)
++{
++	size_t i;
++	const char *s, *e = strrchr(filepath, '/');
++
++	assert(e != NULL);
++	for (i = 0; i < ARRLEN(tns_whitelisted_dirs); ++i) {
++		size_t l = strlen(s = tns_whitelisted_dirs[i]);
++		assert(l > 0);
++		l -= s[l - 1] == '/';
++#if WHITELIST_RECURSIVE
++		if (l <= (size_t)(e - filepath) && filepath[l] == '/' &&
++		    memcmp(filepath, s, l) == 0)
++#else
++		if (l == (size_t)(e - filepath) && memcmp(filepath, s, l) == 0)
++#endif
++		{
++			return true;
++		}
++	}
++	return false;
++}
++
+ static char* tns_cache_filepath(const char *filepath)
+ {
+ 	size_t len;
+@@ -80,7 +104,7 @@ static void tns_cache_write(Imlib_Image im, const char *filepath, bool force)
+ 	struct utimbuf times;
+ 	Imlib_Load_Error err;
+ 
+-	if (options->private_mode)
++	if (options->private_mode || !tns_is_whitelisted(filepath))
+ 		return;
+ 
+ 	if (stat(filepath, &fstats) < 0)
+-- 
+2.35.1
+
