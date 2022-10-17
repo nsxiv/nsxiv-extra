@@ -9,8 +9,8 @@ while getopts "H:hW:x:" OPT; do
     case "$OPT" in
         H) maxheight="$OPTARG";;
         h)
-            printf "%s" \
-"$execname [OPTION]... [FILE]...
+            cat << EOF
+$execname [OPTION]... [FILE]...
 Automatically toggle anti-aliasing for nsxiv based on image resolution.
 
 If any of the given images are larger than the given maximum dimensions, anti-aliasing is enabled. Otherwise, anti-aliasing is disabled.
@@ -19,7 +19,7 @@ If any of the given images are larger than the given maximum dimensions, anti-al
   -h  show this help and exit
   -W  maximum image width. default is 256.
   -x  set nsxiv executable. default is nsxiv.
-"
+EOF
             exit 0
             ;;
         W) maxwidth="$OPTARG";;
