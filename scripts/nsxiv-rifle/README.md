@@ -10,7 +10,7 @@ This may cause slight performance decrease.
 
 ```diff
 -    find -L "$1" -maxdepth 1 -type f -print |
-+    find -L "$1" \( ! -path "///${1%/*}" -prune \) -type f -print |
++    find -L "$1" \( ! -path "$1" -prune \) -type f -print |
 ```
 
 [sxiv-rifle]: https://github.com/ranger/ranger/blob/master/examples/rifle_sxiv.sh
