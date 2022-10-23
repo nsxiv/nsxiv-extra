@@ -44,7 +44,10 @@ for fl; do
 
     width="$(printf "%s\n" "$exif" | jq -r '.[0].ImageWidth' 2> /dev/null)" || continue
     height="$(printf "%s\n" "$exif" | jq -r '.[0].ImageHeight' 2> /dev/null)" || continue
-    [ "$width" -gt "$maxwidth" ] || [ "$height" -gt "$maxheight" ] && antialias=""
+    [ "$width" -gt "$maxwidth" ] || [ "$height" -gt "$maxheight" ] && {
+        antialias=""
+        break
+    }
 done
 
 exec "$nsxivexec" "--anti-alias$antialias" -- "$@"
