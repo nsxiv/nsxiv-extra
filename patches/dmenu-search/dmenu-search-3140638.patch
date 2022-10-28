@@ -1,0 +1,101 @@
+From b9764bcf93b03189e42b5dbe788311938d4f98ab Mon Sep 17 00:00:00 2001
+From: NRK <nrk@disroot.org>
+Date: Fri, 28 Oct 2022 23:04:12 +0600
+Subject: [PATCH] patch: add dmenu search
+
+---
+ commands.c   | 44 ++++++++++++++++++++++++++++++++++++++++++++
+ commands.h   |  2 ++
+ config.def.h |  1 +
+ 3 files changed, 47 insertions(+)
+
+diff --git a/commands.c b/commands.c
+index 8907d51..6db18a4 100644
+--- a/commands.c
++++ b/commands.c
+@@ -248,6 +248,50 @@ bool cg_change_gamma(arg_t d)
+ 	}
+ }
+ 
++bool cg_dmenu_search(arg_t _)
++{
++	char id_buf[64], output[4096];
++	char *argv[6];
++	spawn_t pfd;
++	int i, goto_img = -1;
++	ssize_t n;
++
++	snprintf(id_buf, sizeof id_buf, "0x%.8lX", win.xwin);
++	construct_argv(
++		argv, ARRLEN(argv),
++		"/usr/local/bin/dmenu", "-l", "16", "-w", id_buf, NULL
++	);
++	pfd = spawn(argv[0], argv, X_READ | X_WRITE);
++	if (pfd.pid < 0) {
++		return false;
++	}
++	for (i = 0; i < filecnt; ++i) {
++		dprintf(pfd.writefd, "%s\n", files[i].name);
++	}
++	close(pfd.writefd);
++	if ((n = read(pfd.readfd, output, sizeof output - 1)) > 0) {
++		char *e = memchr(output, '\n', n);
++		if (e != NULL)
++			*e = '\0';
++		else
++			output[n] = '\0';
++		for (i = 0; i < filecnt; ++i) {
++			if (STREQ(output, files[i].name)) {
++				goto_img = i;
++				break;
++			}
++		}
++	}
++	close(pfd.readfd);
++
++	if (goto_img >= 0) {
++		prefix = goto_img + 1;
++		return cg_n_or_last(_);
++	} else {
++		return false;
++	}
++}
++
+ bool ci_navigate(arg_t n)
+ {
+ 	if (prefix > 0)
+diff --git a/commands.h b/commands.h
+index c4c3973..dafa806 100644
+--- a/commands.h
++++ b/commands.h
+@@ -20,6 +20,7 @@ bool cg_toggle_fullscreen(arg_t);
+ bool cg_toggle_image_mark(arg_t);
+ bool cg_unmark_all(arg_t);
+ bool cg_zoom(arg_t);
++bool cg_dmenu_search(arg_t);
+ /* image mode */
+ bool ci_alternate(arg_t);
+ bool ci_cursor_navigate(arg_t);
+@@ -63,6 +64,7 @@ bool ct_select(arg_t);
+ #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
+ #define g_unmark_all { cg_unmark_all, MODE_ALL }
+ #define g_zoom { cg_zoom, MODE_ALL }
++#define g_dmenu_search { cg_dmenu_search, MODE_ALL }
+ 
+ /* image mode */
+ #define i_alternate { ci_alternate, MODE_IMAGE }
+diff --git a/config.def.h b/config.def.h
+index 00f1f22..ef7c2a8 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -97,6 +97,7 @@ static const keymap_t keys[] = {
+ 	{ 0,            XK_G,             g_n_or_last,          None },
+ 	{ 0,            XK_r,             g_reload_image,       None },
+ 	{ 0,            XK_D,             g_remove_image,       None },
++	{ 0,            XK_slash,         g_dmenu_search,       None },
+ 	{ ControlMask,  XK_h,             g_scroll_screen,      DIR_LEFT },
+ 	{ ControlMask,  XK_Left,          g_scroll_screen,      DIR_LEFT },
+ 	{ ControlMask,  XK_j,             g_scroll_screen,      DIR_DOWN },
+-- 
+2.35.1
+
