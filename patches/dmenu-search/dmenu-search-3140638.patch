@@ -1,28 +1,22 @@
 diff --git a/commands.c b/commands.c
-index 8907d51..ca96723 100644
+index 8907d51..fb7b8cb 100644
 --- a/commands.c
 +++ b/commands.c
-@@ -18,6 +18,8 @@
-  */
- 
- #include "nsxiv.h"
-+#define INCLUDE_COMMANDS_CONFIG
-+#include "config.h"
- 
- #include "commands.h"
- 
-@@ -248,6 +250,45 @@ bool cg_change_gamma(arg_t d)
+@@ -248,6 +248,48 @@ bool cg_change_gamma(arg_t d)
  	}
  }
  
 +bool cg_dmenu_search(arg_t _)
 +{
++	extern char nsxiv_xid[64];
++	extern const char *const dmenu_cmd[];
++
 +	char output[4096];
 +	spawn_t pfd;
 +	int i, goto_img = -1;
 +	ssize_t n;
 +
-+	snprintf(xid, sizeof xid, "0x%.8lX", win.xwin);
++	snprintf(nsxiv_xid, sizeof nsxiv_xid, "0x%.8lX", win.xwin);
 +	pfd = spawn(dmenu_cmd[0], (char **)dmenu_cmd, X_READ | X_WRITE);
 +	if (pfd.pid < 0) {
 +		return false;
@@ -78,25 +72,22 @@ index c4c3973..dafa806 100644
  /* image mode */
  #define i_alternate { ci_alternate, MODE_IMAGE }
 diff --git a/config.def.h b/config.def.h
-index 00f1f22..093116a 100644
+index 00f1f22..95e2f60 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -76,6 +76,14 @@ static const int thumb_sizes[] = { 32, 64, 96, 128, 160 };
- /* thumbnail size at startup, index into thumb_sizes[]: */
- static const int THUMB_SIZE = 3;
- 
-+#endif
-+#ifdef INCLUDE_COMMANDS_CONFIG
-+
-+char xid[64]; /* will be set to nsxiv's xid when dmenu_search is invoked */
-+const char *const dmenu_cmd[] = {
-+	"/usr/local/bin/dmenu", "-l", "16", "-w", xid, NULL
-+};
-+
+@@ -79,6 +79,11 @@ static const int THUMB_SIZE = 3;
  #endif
  #ifdef INCLUDE_MAPPINGS_CONFIG
  
-@@ -97,6 +105,7 @@ static const keymap_t keys[] = {
++char nsxiv_xid[64]; /* will be set to nsxiv's xid when dmenu_search is invoked */
++const char *const dmenu_cmd[] = {
++	"/usr/local/bin/dmenu", "-l", "16", "-w", nsxiv_xid, NULL
++};
++
+ /* these modifiers will be used when processing keybindings */
+ static const unsigned int USED_MODMASK = ShiftMask | ControlMask | Mod1Mask;
+ 
+@@ -97,6 +102,7 @@ static const keymap_t keys[] = {
  	{ 0,            XK_G,             g_n_or_last,          None },
  	{ 0,            XK_r,             g_reload_image,       None },
  	{ 0,            XK_D,             g_remove_image,       None },
