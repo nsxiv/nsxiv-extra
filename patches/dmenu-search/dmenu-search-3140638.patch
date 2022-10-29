@@ -1,36 +1,29 @@
-From b9764bcf93b03189e42b5dbe788311938d4f98ab Mon Sep 17 00:00:00 2001
-From: NRK <nrk@disroot.org>
-Date: Fri, 28 Oct 2022 23:04:12 +0600
-Subject: [PATCH] patch: add dmenu search
-
----
- commands.c   | 44 ++++++++++++++++++++++++++++++++++++++++++++
- commands.h   |  2 ++
- config.def.h |  1 +
- 3 files changed, 47 insertions(+)
-
 diff --git a/commands.c b/commands.c
-index 8907d51..6db18a4 100644
+index 8907d51..ca96723 100644
 --- a/commands.c
 +++ b/commands.c
-@@ -248,6 +248,50 @@ bool cg_change_gamma(arg_t d)
+@@ -18,6 +18,8 @@
+  */
+ 
+ #include "nsxiv.h"
++#define INCLUDE_COMMANDS_CONFIG
++#include "config.h"
+ 
+ #include "commands.h"
+ 
+@@ -248,6 +250,45 @@ bool cg_change_gamma(arg_t d)
  	}
  }
  
 +bool cg_dmenu_search(arg_t _)
 +{
-+	char id_buf[64], output[4096];
-+	char *argv[6];
++	char output[4096];
 +	spawn_t pfd;
 +	int i, goto_img = -1;
 +	ssize_t n;
 +
-+	snprintf(id_buf, sizeof id_buf, "0x%.8lX", win.xwin);
-+	construct_argv(
-+		argv, ARRLEN(argv),
-+		"/usr/local/bin/dmenu", "-l", "16", "-w", id_buf, NULL
-+	);
-+	pfd = spawn(argv[0], argv, X_READ | X_WRITE);
++	snprintf(xid, sizeof xid, "0x%.8lX", win.xwin);
++	pfd = spawn(dmenu_cmd[0], (char **)dmenu_cmd, X_READ | X_WRITE);
 +	if (pfd.pid < 0) {
 +		return false;
 +	}
@@ -85,10 +78,25 @@ index c4c3973..dafa806 100644
  /* image mode */
  #define i_alternate { ci_alternate, MODE_IMAGE }
 diff --git a/config.def.h b/config.def.h
-index 00f1f22..ef7c2a8 100644
+index 00f1f22..093116a 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -97,6 +97,7 @@ static const keymap_t keys[] = {
+@@ -76,6 +76,14 @@ static const int thumb_sizes[] = { 32, 64, 96, 128, 160 };
+ /* thumbnail size at startup, index into thumb_sizes[]: */
+ static const int THUMB_SIZE = 3;
+ 
++#endif
++#ifdef INCLUDE_COMMANDS_CONFIG
++
++char xid[64]; /* will be set to nsxiv's xid when dmenu_search is invoked */
++const char *const dmenu_cmd[] = {
++	"/usr/local/bin/dmenu", "-l", "16", "-w", xid, NULL
++};
++
+ #endif
+ #ifdef INCLUDE_MAPPINGS_CONFIG
+ 
+@@ -97,6 +105,7 @@ static const keymap_t keys[] = {
  	{ 0,            XK_G,             g_n_or_last,          None },
  	{ 0,            XK_r,             g_reload_image,       None },
  	{ 0,            XK_D,             g_remove_image,       None },
@@ -96,6 +104,3 @@ index 00f1f22..ef7c2a8 100644
  	{ ControlMask,  XK_h,             g_scroll_screen,      DIR_LEFT },
  	{ ControlMask,  XK_Left,          g_scroll_screen,      DIR_LEFT },
  	{ ControlMask,  XK_j,             g_scroll_screen,      DIR_DOWN },
--- 
-2.35.1
-
