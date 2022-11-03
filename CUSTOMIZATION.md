@@ -6,10 +6,14 @@ the source-code as they see fit. This includes simple customization in
 
 In order to manage such customization the best and recommended way is to use
 `git`. Suckless's website has a [great guide](http://dwm.suckless.org/customisation/patches_in_git)
-on how to use git branching and rebase to manage your personal build. If you're
-unfamiliar with git then you may want to first familiarize yourself with some of
-the basics first.
-<!-- TODO: we should add some basic git guide here -->
+on how to use git branching and rebase to manage your personal build.
+
+If you're unfamiliar with git then you may want to first familiarize yourself
+with some of the basics first. See the manual pages [gittutorial][] and
+[giteveryday][] for a quick start.
+
+[gittutorial]: https://www.man7.org/linux/man-pages/man7/gittutorial.7.html
+[giteveryday]: https://www.man7.org/linux/man-pages/man7/giteveryday.7.html
 
 ## Hacking
 
