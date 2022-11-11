@@ -1,8 +1,8 @@
 diff --git a/commands.c b/commands.c
-index 8907d51..fb7b8cb 100644
+index 3cc921c..8e976c7 100644
 --- a/commands.c
 +++ b/commands.c
-@@ -248,6 +248,48 @@ bool cg_change_gamma(arg_t d)
+@@ -233,6 +233,48 @@ bool cg_change_gamma(arg_t d)
  	}
  }
  
@@ -72,7 +72,7 @@ index c4c3973..dafa806 100644
  /* image mode */
  #define i_alternate { ci_alternate, MODE_IMAGE }
 diff --git a/config.def.h b/config.def.h
-index 00f1f22..95e2f60 100644
+index 00f1f22..6a4a42c 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -79,6 +79,11 @@ static const int THUMB_SIZE = 3;
@@ -81,7 +81,7 @@ index 00f1f22..95e2f60 100644
  
 +char nsxiv_xid[64]; /* will be set to nsxiv's xid when dmenu_search is invoked */
 +const char *const dmenu_cmd[] = {
-+	"/usr/local/bin/dmenu", "-l", "16", "-w", nsxiv_xid, NULL
++	"/usr/bin/env", "dmenu", "-l", "16", "-w", nsxiv_xid, NULL
 +};
 +
  /* these modifiers will be used when processing keybindings */
