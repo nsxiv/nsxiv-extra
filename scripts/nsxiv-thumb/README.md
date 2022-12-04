@@ -18,7 +18,29 @@ Dependencies not specified by POSIX for the \*BSD version are:
 
 You can change what to open the files with by setting the `OPENER` variable in
 the beginning of both scripts. Default is `$OPENER` or `xdg-open`. Execute the
-script like `OPENER=echo nsxiv-thumb` to use it as a filter.
+script like `OPENER=echo nsxiv-thumb` to use it as a filter. Beware that
+`$OPENER` is `eval`ed.
+
+## Examples
+
+In this section, you *may not* blindly swap `nsxiv-thumb` and `nsxiv-thumb-bsd`
+and expect the example to function the same.
+
+### Usage with [lf](https://github.com/gokcehan/lf)
+
+Here we embed `nsxiv` in our `tabbed` instance with X ID `$TABBED_XID`, and set
+`OPENER` to `printf "%s\0"` to use `nsxiv-thumb` as a filter with
+null-delimited output. After `nsxiv` halts, the marked files are selected in
+`lf`.
+
+```sh
+cmd selectnsxivthumb %{{
+    OPENER='printf "%s\0"' SIZE=768 nsxiv-thumb -e "$TABBED_XID" | xargs -r0 realpath -sm -- | while IFS= read -r i; do
+        lf -remote "send $id select '$i'" && lf -remote "send $id toggle"
+    done
+    lf -remote "send $id select '$f'"
+}}
+```
 
 ## Authors
 
