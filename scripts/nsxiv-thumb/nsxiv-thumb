@@ -21,12 +21,12 @@ tmpdir="$(mktemp -d)" || {
     exit 1
 }
 trap 'rm -rf -- "$tmpdir"' TERM INT EXIT HUP
+export tmpdir
 
 find '.' -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -printf "%P\0" \
     | xargs -r0 -n 1 -P "$MAXPROCS" sh -c '
         set -e
 
-        tmpdir='\'"$tmpdir"\''
         file="$1"
         realpath="$(realpath -- "$file")"
 
