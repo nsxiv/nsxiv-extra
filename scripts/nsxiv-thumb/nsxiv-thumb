@@ -35,9 +35,9 @@ find '.' -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -printf "%P\0" \
             *) exit 0;;
         esac
         
-        hash="$(stat --printf "%F%i%n%s%W%Y" -- "$realpath" | sha512sum | cut -d" " -f1)"
+        hash="$({ stat --printf "%F%i%n%s%W%Y" -- "$realpath"; printf "%s" "$SIZE" "$EXT"; } | sha512sum | cut -d" " -f1)"
         thumbfl="$CACHEDIR/$hash.$EXT"
-        [ -f "$thumbfl" ] || ffmpegthumbnailer -i "$file" -o "$thumbfl" -m -s "$SIZE" 2> /dev/null
+        [ -s "$thumbfl" ] || ffmpegthumbnailer -i "$file" -o "$thumbfl" -m -s "$SIZE" 2> /dev/null
         cp -- "$thumbfl" "$tmpdir/$file.$EXT"
     ' --
 
