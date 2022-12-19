@@ -2,6 +2,7 @@
 
 set -e
 
+[ -z "$NSXIV_EXEC" ] && NSXIV_EXEC="nsxiv"
 OPENER="${OPENER:-"xdg-open"}"
 CACHEDIR="${NSXIV_THUMB_CACHE_DIR:-"${XDG_CACHE_HOME:-"$HOME/.cache"}/nsxiv-extra/nsxiv-thumb"}"
 # extension of thumbnails. can be jpg or png.
@@ -38,7 +39,7 @@ find '.' \( -type f -o -type l \) -print \
         cp -- "$thumbfl" "$tmpdir/$file.$EXT"
     done
 
-{ nsxiv -otp -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
+{ "$NSXIV_EXEC" -otp -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
     | sed "s|\.$EXT$||;s|^.*/||" \
     | sort \
     | while IFS= read -r file; do

@@ -1,5 +1,6 @@
 #!/bin/sh
 
+[ -z "$NSXIV_EXEC" ] && NSXIV_EXEC="nsxiv"
 TMPDIR="${TMPDIR:-/tmp}"
 tmp="$TMPDIR/nsxiv_rifle_$$"
 
@@ -20,11 +21,11 @@ open_img() {
         count="$(listfiles "///${file%/*}" | grep -nF "$file")"
     fi
     if [ -n "$count" ]; then
-        nsxiv -i -n "${count%%:*}" "$@" -- < "$tmp"
+        "$NSXIV_EXEC" -i -n "${count%%:*}" "$@" -- < "$tmp"
     else
         # fallback incase file didn't have a valid extension, or we couldn't
         # find it inside the list
-        nsxiv "$@" -- "$file"
+        "$NSXIV_EXEC" "$@" -- "$file"
     fi
 }
 

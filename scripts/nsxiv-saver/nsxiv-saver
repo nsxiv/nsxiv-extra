@@ -1,8 +1,9 @@
 #!/bin/sh
 
+[ -z "$NSXIV_EXEC" ] && NSXIV_EXEC="nsxiv"
 delay=1
 images="$HOME/Pictures"
 geometry="$(xdpyinfo | grep 'dimensions:' | cut -d' ' -f7)"
 
-nsxiv -bf -r -S "$delay" -e "$XSCREENSAVER_WINDOW" -g "$geometry" -s F "$images"
-#         ^ remove if you don't want images from the sub-directories
+"$NSXIV_EXEC" -bf -r -S "$delay" -e "$XSCREENSAVER_WINDOW" -g "$geometry" -s F "$images"
+#                 ^ remove if you don't want images from the sub-directories

@@ -4,7 +4,9 @@ execname="$0"
 
 maxheight=256
 maxwidth=256
-nsxivexec="nsxiv"
+
+[ -z "$NSXIV_EXEC" ] && NSXIV_EXEC="nsxiv"
+
 while getopts "H:hW:x:" OPT; do
     case "$OPT" in
         H) maxheight="$OPTARG";;
@@ -23,7 +25,7 @@ EOF
             exit 0
             ;;
         W) maxwidth="$OPTARG";;
-        x) nsxivexec="$OPTARG";;
+        x) NSXIV_EXEC="$OPTARG";;
         *)
             printf "Try '%s -h' for more information.\n" "$execname"
             exit 1
@@ -50,4 +52,4 @@ for fl; do
     }
 done
 
-exec "$nsxivexec" "--anti-alias$antialias" -- "$@"
+exec "$NSXIV_EXEC" "--anti-alias$antialias" -- "$@"

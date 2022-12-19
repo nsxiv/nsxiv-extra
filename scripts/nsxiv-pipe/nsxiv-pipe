@@ -1,5 +1,6 @@
 #!/bin/sh
 
+[ -z "$NSXIV_EXEC" ] && NSXIV_EXEC="nsxiv"
 tmpfile="${TMPDIR:-/tmp}/nsxiv_pipe_$$"
 trap 'rm -f -- $tmpfile' EXIT
 
@@ -18,7 +19,7 @@ for arg in "$@"; do
 done
 
 if [ -s "$tmpfile" ]; then
-    nsxiv -q "$@" "$tmpfile" # -q to silence warnings
+    "$NSXIV_EXEC" -q "$@" "$tmpfile" # -q to silence warnings
 else
-    nsxiv "$@" # fallback
+    "$NSXIV_EXEC" "$@" # fallback
 fi
