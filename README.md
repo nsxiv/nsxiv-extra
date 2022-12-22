@@ -32,6 +32,7 @@ merge conflicts or broken functionality on upgrade.
 | [zoom-per-image](patches/zoom-per-image) | Remember what the zoom for image was |
 | [cache-whitelist](patches/cache-whitelist) | Write thumbnail cache only on whitelisted directories |
 | [dmenu-search](patches/dmenu-search) | Search the filelist using `dmenu` |
+| [color-invert](patches/color-invert) | Invert image colors |
 
 For patch submissions please use the following format:
 

@@ -1,0 +1,96 @@
+diff --git a/commands.c b/commands.c
+index 1ba0363..49a1cdc 100644
+--- a/commands.c
++++ b/commands.c
+@@ -246,6 +246,15 @@ bool cg_change_contrast(arg_t d)
+ 	return change_color_modifier(d, &img.contrast);
+ }
+ 
++bool cg_toggle_invert(arg_t _)
++{
++	img.invert = !img.invert;
++	img_update_color_modifiers(&img);
++	if (mode == MODE_THUMB)
++		tns.dirty = true;
++	return true;
++}
++
+ bool ci_navigate(arg_t n)
+ {
+ 	if (prefix > 0)
+diff --git a/commands.h b/commands.h
+index 76b1330..75cdcc1 100644
+--- a/commands.h
++++ b/commands.h
+@@ -6,6 +6,7 @@
+ bool cg_change_gamma(arg_t);
+ bool cg_change_brightness(arg_t);
+ bool cg_change_contrast(arg_t);
++bool cg_toggle_invert(arg_t);
+ bool cg_first(arg_t);
+ bool cg_mark_range(arg_t);
+ bool cg_n_or_last(arg_t);
+@@ -51,6 +52,7 @@ bool ct_select(arg_t);
+ #define g_change_gamma { cg_change_gamma, MODE_ALL }
+ #define g_change_brightness { cg_change_brightness, MODE_ALL }
+ #define g_change_contrast { cg_change_contrast, MODE_ALL }
++#define g_toggle_invert { cg_toggle_invert, MODE_ALL }
+ #define g_first { cg_first, MODE_ALL }
+ #define g_mark_range { cg_mark_range, MODE_ALL }
+ #define g_n_or_last { cg_n_or_last, MODE_ALL }
+diff --git a/config.def.h b/config.def.h
+index 198c696..49702b9 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -125,6 +125,7 @@ static const keymap_t keys[] = {
+ 	{ ControlMask,  XK_bracketleft,   g_change_brightness,  -1 },
+ 	{ 0,            XK_parenleft,     g_change_contrast,    -1 },
+ 	{ 0,            XK_parenright,    g_change_contrast,    +1 },
++	{ 0,            XK_i,             g_toggle_invert,      None },
+ 
+ 	{ 0,            XK_h,             t_move_sel,           DIR_LEFT },
+ 	{ 0,            XK_Left,          t_move_sel,           DIR_LEFT },
+diff --git a/image.c b/image.c
+index 418eb60..2e5280f 100644
+--- a/image.c
++++ b/image.c
+@@ -92,6 +92,7 @@ void img_init(img_t *img, win_t *win)
+ 	imlib_context_set_color_modifier(img->cmod);
+ 	img->brightness = 0;
+ 	img->contrast = 0;
++	img->invert = false;
+ 	img_change_color_modifier(img, options->gamma, &img->gamma);
+ 
+ 	img->ss.on = options->slideshow > 0;
+@@ -859,6 +860,19 @@ void img_update_color_modifiers(img_t *img)
+ 	if (img->contrast != 0)
+ 		imlib_modify_color_modifier_contrast(steps_to_range(img->contrast, CONTRAST_MAX, 1.0));
+ 
++	if (img->invert) {
++		size_t i;
++		uint8_t r[256], g[256], b[256], a[256];
++
++		imlib_get_color_modifier_tables(r, g, b, a);
++		for (i = 0; i < ARRLEN(r); i++) {
++			r[i] = 255 - r[i];
++			g[i] = 255 - g[i];
++			b[i] = 255 - b[i];
++		}
++		imlib_set_color_modifier_tables(r, g, b, a);
++	}
++
+ 	img->dirty = true;
+ }
+ 
+diff --git a/nsxiv.h b/nsxiv.h
+index 33a2bde..8ba5fbf 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -183,6 +183,7 @@ struct img {
+ 	int gamma;
+ 	int brightness;
+ 	int contrast;
++	bool invert;
+ 
+ 	scalemode_t scalemode;
+ 	float zoom;
