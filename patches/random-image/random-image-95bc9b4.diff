@@ -1,0 +1,84 @@
+diff --git a/commands.c b/commands.c
+index 1ba0363..2da7f3a 100644
+--- a/commands.c
++++ b/commands.c
+@@ -476,3 +476,35 @@ bool ct_select(arg_t _)
+ 
+ 	return dirty;
+ }
++
++/*
++ * NOTE(NRK): could be faster with __builtin_clz(), but i've opted for portibility instead.
++ * ref: https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
++ */
++static unsigned int next_power_of_2(unsigned int v)
++{
++	--v;
++	v |= v >> 1;
++	v |= v >> 2;
++	v |= v >> 4;
++	v |= v >> 8;
++	v |= v >> 16;
++	return ++v;
++}
++
++/*
++ * rejects any baised samples with the bitmask approach described in:
++ * https://www.pcg-random.org/posts/bounded-rands.html
++ */
++bool cg_random(arg_t _)
++{
++	if (filecnt >= 2) {
++		int n;
++		unsigned int mask = next_power_of_2(filecnt) - 1;
++		do {
++			n = rand() & mask;
++		} while (n >= filecnt || n == fileidx);
++		return navigate_to(n);
++	}
++	return false;
++}
+diff --git a/commands.h b/commands.h
+index 76b1330..82e2aef 100644
+--- a/commands.h
++++ b/commands.h
+@@ -22,6 +22,7 @@ bool cg_toggle_fullscreen(arg_t);
+ bool cg_toggle_image_mark(arg_t);
+ bool cg_unmark_all(arg_t);
+ bool cg_zoom(arg_t);
++bool cg_random(arg_t);
+ /* image mode */
+ bool ci_alternate(arg_t);
+ bool ci_cursor_navigate(arg_t);
+@@ -67,6 +68,7 @@ bool ct_select(arg_t);
+ #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
+ #define g_unmark_all { cg_unmark_all, MODE_ALL }
+ #define g_zoom { cg_zoom, MODE_ALL }
++#define g_random { cg_random, MODE_ALL }
+ 
+ /* image mode */
+ #define i_alternate { ci_alternate, MODE_IMAGE }
+diff --git a/config.def.h b/config.def.h
+index 198c696..1974ff9 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -98,6 +98,7 @@ static const keymap_t keys[] = {
+ 	{ ControlMask,  XK_x,             g_prefix_external,    None },
+ 	{ 0,            XK_g,             g_first,              None },
+ 	{ 0,            XK_G,             g_n_or_last,          None },
++	{ ControlMask,  XK_r,             g_random,             None },
+ 	{ 0,            XK_r,             g_reload_image,       None },
+ 	{ 0,            XK_D,             g_remove_image,       None },
+ 	{ ControlMask,  XK_h,             g_scroll_screen,      DIR_LEFT },
+diff --git a/main.c b/main.c
+index 8ee5b9d..8949ff5 100644
+--- a/main.c
++++ b/main.c
+@@ -867,6 +867,7 @@ int main(int argc, char *argv[])
+ 	setup_signal(SIGCHLD, sigchld);
+ 	setup_signal(SIGPIPE, SIG_IGN);
+ 
++	srand(time(NULL));
+ 	setlocale(LC_COLLATE, "");
+ 
+ 	parse_options(argc, argv);
