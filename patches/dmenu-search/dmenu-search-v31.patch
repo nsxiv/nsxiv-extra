@@ -1,9 +1,9 @@
 diff --git a/commands.c b/commands.c
-index 3cc921c..8e976c7 100644
+index 1ba0363..2c45462 100644
 --- a/commands.c
 +++ b/commands.c
-@@ -233,6 +233,48 @@ bool cg_change_gamma(arg_t d)
- 	}
+@@ -246,6 +246,40 @@ bool cg_change_contrast(arg_t d)
+ 	return change_color_modifier(d, &img.contrast);
  }
  
 +bool cg_dmenu_search(arg_t _)
@@ -12,20 +12,17 @@ index 3cc921c..8e976c7 100644
 +	extern const char *const dmenu_cmd[];
 +
 +	char output[4096];
-+	spawn_t pfd;
-+	int i, goto_img = -1;
++	int i, rfd, wfd, goto_img = -1;
 +	ssize_t n;
 +
 +	snprintf(nsxiv_xid, sizeof nsxiv_xid, "0x%.8lX", win.xwin);
-+	pfd = spawn(dmenu_cmd[0], (char **)dmenu_cmd, X_READ | X_WRITE);
-+	if (pfd.pid < 0) {
++	if (spawn(&rfd, &wfd, (char **)dmenu_cmd) < 0)
 +		return false;
-+	}
 +	for (i = 0; i < filecnt; ++i) {
-+		dprintf(pfd.writefd, "%s\n", files[i].name);
++		dprintf(wfd, "%s\n", files[i].name);
 +	}
-+	close(pfd.writefd);
-+	if ((n = read(pfd.readfd, output, sizeof output - 1)) > 0) {
++	close(wfd);
++	if ((n = read(rfd, output, sizeof output - 1)) > 0) {
 +		char *e = memchr(output, '\n', n);
 +		if (e != NULL)
 +			*e = '\0';
@@ -38,24 +35,19 @@ index 3cc921c..8e976c7 100644
 +			}
 +		}
 +	}
-+	close(pfd.readfd);
++	close(rfd);
 +
-+	if (goto_img >= 0) {
-+		prefix = goto_img + 1;
-+		return cg_n_or_last(_);
-+	} else {
-+		return false;
-+	}
++	return navigate_to(goto_img);
 +}
 +
  bool ci_navigate(arg_t n)
  {
  	if (prefix > 0)
 diff --git a/commands.h b/commands.h
-index c4c3973..dafa806 100644
+index 76b1330..15fa951 100644
 --- a/commands.h
 +++ b/commands.h
-@@ -20,6 +20,7 @@ bool cg_toggle_fullscreen(arg_t);
+@@ -22,6 +22,7 @@ bool cg_toggle_fullscreen(arg_t);
  bool cg_toggle_image_mark(arg_t);
  bool cg_unmark_all(arg_t);
  bool cg_zoom(arg_t);
@@ -63,7 +55,7 @@ index c4c3973..dafa806 100644
  /* image mode */
  bool ci_alternate(arg_t);
  bool ci_cursor_navigate(arg_t);
-@@ -63,6 +64,7 @@ bool ct_select(arg_t);
+@@ -67,6 +68,7 @@ bool ct_select(arg_t);
  #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
  #define g_unmark_all { cg_unmark_all, MODE_ALL }
  #define g_zoom { cg_zoom, MODE_ALL }
@@ -72,22 +64,22 @@ index c4c3973..dafa806 100644
  /* image mode */
  #define i_alternate { ci_alternate, MODE_IMAGE }
 diff --git a/config.def.h b/config.def.h
-index 00f1f22..6a4a42c 100644
+index 198c696..600a5ba 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -79,6 +79,11 @@ static const int THUMB_SIZE = 3;
+@@ -82,6 +82,11 @@ static const int THUMB_SIZE = 3;
  #endif
  #ifdef INCLUDE_MAPPINGS_CONFIG
  
 +char nsxiv_xid[64]; /* will be set to nsxiv's xid when dmenu_search is invoked */
 +const char *const dmenu_cmd[] = {
-+	"/usr/bin/env", "dmenu", "-l", "16", "-w", nsxiv_xid, NULL
++	"dmenu", "-l", "16", "-w", nsxiv_xid, NULL
 +};
 +
  /* these modifiers will be used when processing keybindings */
  static const unsigned int USED_MODMASK = ShiftMask | ControlMask | Mod1Mask;
  
-@@ -97,6 +102,7 @@ static const keymap_t keys[] = {
+@@ -100,6 +105,7 @@ static const keymap_t keys[] = {
  	{ 0,            XK_G,             g_n_or_last,          None },
  	{ 0,            XK_r,             g_reload_image,       None },
  	{ 0,            XK_D,             g_remove_image,       None },
