@@ -8,8 +8,7 @@ bin_file() {
                 fl_ext="$(printf "%s" "$fl" | sed -E 's/(\.pgp|\.gpg|\.asc)//;s/.*\././')"
                 dec_fl="$(mktemp --suffix="$fl_ext")"
                 printf "%s\0" "$dec_fl" >> "$tmp_list"
-                gpg --output "$dec_fl" --decrypt "$fl" > /dev/null
-                bin_file "$dec_fl"
+                gpg --output "$dec_fl" --decrypt "$fl" > /dev/null && bin_file "$dec_fl"
                 return "$?"
                 ;;
         esac
@@ -20,8 +19,7 @@ bin_file() {
         video/*) 
             thumb_fl="$(mktemp --suffix=".png")"
             printf "%s\0" "$thumb_fl" >> "$tmp_list"
-            ffmpegthumbnailer -i "$fl" -o "$thumb_fl" -m -s 768 > /dev/null
-            bin_file "$thumb_fl"
+            ffmpegthumbnailer -i "$fl" -o "$thumb_fl" -m -s 768 > /dev/null && bin_file "$thumb_fl"
             return "$?"
             ;;
         image/*) printf "%s\0" "$fl" >> "$nsxiv_list";;
