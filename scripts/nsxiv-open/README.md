@@ -9,6 +9,10 @@ with `xdg-open`.
 
 - `xargs` with `-P` option ("max procs")
 
+## Optional Dependencies
+
+- `gpg`
+
 ## Security Issues
 
 - Decrypted data are stored in plain files in the default directory of
