@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+
+bin_file() {
+    fl="$1"
+    [ -z "${NSXIV_OPEN_NO_DECRYPT+x}" ] && {
+        case "$fl" in
+            *.pgp|*.gpg|*.asc)
+                fl_ext="$(printf "%s" "$fl" | sed -E 's/(\.pgp|\.gpg|\.asc)//;s/.*\././')"
+                dec_fl="$(mktemp --suffix="$fl_ext")"
+                printf "%s\0" "$dec_fl" >> "$tmp_list"
+                gpg --output "$dec_fl" --decrypt "$fl" > /dev/null
+                bin_file "$dec_fl"
+                return "$?"
+                ;;
+        esac
+    }
+
+    fl_type="$(file --brief --mime-type -- "$fl")"
+    case "$fl_type" in
+        video/*) 
+            thumb_fl="$(mktemp --suffix=".png")"
+            printf "%s\0" "$thumb_fl" >> "$tmp_list"
+            ffmpegthumbnailer -i "$fl" -o "$thumb_fl" -m -s 768 > /dev/null
+            bin_file "$thumb_fl"
+            return "$?"
+            ;;
+        image/*) printf "%s\0" "$fl" >> "$nsxiv_list";;
+        *) printf "%s\0" "$fl" >> "$xdg_open_list";;
+    esac
+}
+
+nsxiv_list="$(mktemp)"
+xdg_open_list="$(mktemp)"
+tmp_list="$(mktemp)"
+trap '
+    xargs -r -0 rm -f -- < "$tmp_list"
+    rm -f -- "$nsxiv_list" "$xdg_open_list" "$tmp_list"
+' EXIT INT TERM QUIT HUP
+
+for arg; do
+    bin_file "$arg"
+done
+
+xargs -r -0 -P 0 -n 1 xdg-open < "$xdg_open_list" &
+nsxiv -i -0 < "$xdg_open_list"
