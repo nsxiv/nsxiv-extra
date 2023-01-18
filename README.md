@@ -60,6 +60,7 @@ them to fit their use-cases.
 | [nsxiv-thumb](scripts/nsxiv-thumb) | Select videos to open in the current directory. |
 | [nsxiv-anti-alias](scripts/nsxiv-anti-alias) | Automatically toggle anti-aliasing based on image resolutions. |
 | [nsxiv-open](scripts/nsxiv-open) | Try to open every given file with nsxiv by transforming them. |
+| [nsxiv-fill](scripts/nsxiv-fill) | Set nsxiv's window size equal to the image being opened. |
 | [misc](scripts/MISC.md) | Misc oneliners and other useful scripts. |
 
 For script submissions, it is highly encouraged (but not required) to use POSIX
