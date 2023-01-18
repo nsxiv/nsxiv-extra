@@ -16,7 +16,7 @@ bin_file() {
 
     fl_type="$(file --brief --mime-type -- "$fl")"
     case "$fl_type" in
-        video/*) 
+        video/*)
             thumb_fl="$(mktemp --suffix=".png")"
             printf "%s\0" "$thumb_fl" >> "$tmp_list"
             ffmpegthumbnailer -i "$fl" -o "$thumb_fl" -m -s 768 > /dev/null && bin_file "$thumb_fl"

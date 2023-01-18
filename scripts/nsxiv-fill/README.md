@@ -21,7 +21,7 @@ Consult your WM's docs if you're using something else.
   your system. But it should be trivially possible to replace it with something
   else.
 
-## Possible improvements
+## Possible Improvements
 
 The script disables the status-bar (via the `-b` flag) so that the status-bar
 doesn't overlap on top of the image. If the status-bar font size is [set in
