@@ -33,6 +33,7 @@ merge conflicts or broken functionality on upgrade.
 | [cache-whitelist](patches/cache-whitelist) | Write thumbnail cache only on whitelisted directories |
 | [dmenu-search](patches/dmenu-search) | Search the filelist using `dmenu` |
 | [color-invert](patches/color-invert) | Invert image colors |
+| [square-thumbs](patches/square-thumbs) | Toggleable square thumbnails |
 
 For patch submissions please use the following format:
 
