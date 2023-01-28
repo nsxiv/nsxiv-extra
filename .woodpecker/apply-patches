@@ -21,11 +21,6 @@ searchversion() {
     return 1
 }
 
-apt-get -yqq update > /dev/null 2>&1 \
-    && apt-get -yqq install git > /dev/null 2>&1 \
-    && git clone -q 'https://codeberg.org/nsxiv/nsxiv.git' \
-    || die "apt-get or git failed."
-
 nsxivlog="$(
     cd nsxiv
     {   git for-each-ref --shell --format='dt=%(creatordate:unix) tag=%(refname:short)' 'refs/tags' | tac

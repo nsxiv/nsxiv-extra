@@ -4,4 +4,7 @@ pipeline:
   apply-patches:
     image: debian
     commands: |
+      apt-get -yqq update > /dev/null 2>&1
+      apt-get -yqq install git > /dev/null 2>&1
+      git clone -q 'https://codeberg.org/nsxiv/nsxiv.git'
       exec .woodpecker/apply-patches
