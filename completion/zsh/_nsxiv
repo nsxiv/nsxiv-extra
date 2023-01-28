@@ -29,7 +29,8 @@ _arguments -S \
    "(-t --thumbnail)"{-t,--thumbnail}"[starts in thumbnail mode]" \
    "(-Z --zoom-100)"{-Z,--zoom-100}"[same as \`-z 100\`]" \
    "(-0 --null)"{-0,--null}"[NULL separated file list for: -o, -i and key-handler]" \
-   "(--anti-alias)--anti-alias[enables anti-aliasing, give \`no\` to disable it.]" \
+   "(--anti-alias)--anti-alias[enables anti-aliasing, give \`no\` to disable it]" \
+   "(--alpha-layer)--alpha-layer[enables checkerboard background, give \`no\` to disable it]" \
    '*:files:_files' \
 
 delay_hint() { _message 'delay can be a decimal' }
