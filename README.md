@@ -71,6 +71,11 @@ For script submissions, it is highly encouraged (but not required) to use POSIX
 Idioms, excerpts or full examples for `image-info`, `key-handler`, `thumb-info`
 and `win-title`.
 
+## Completion scripts
+
+Scripts that add the shell completion functionality to `nsxiv`:
+- [zsh](completion/zsh)
+
 ## Contributing
 
 To contribute, sumbit a pull request at [Codeberg][pr].

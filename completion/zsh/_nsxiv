@@ -1,0 +1,36 @@
+#compdef nsxiv
+
+# first, flags that quit; 2nd flags that accept an arg (+); and finally, switches flags.
+
+local modes="((d\:'[d]own' f\:'[f]fit' F\:'[F]ill' w\:'[w]idth' h\:'[h]eight'))"
+
+   # (repeat) {flags}  [message]:var:action
+_arguments -S \
+   "(- : *)"{-v,--version}"[display version information]" \
+   "(- : *)"{-h,--help}"[display help message]" \
+   "(- : *)"{-c,--clean-cache}"[remove all orphaned (thumbnail) cache files]" \
+   "(-N --class)"{-N,--class}"+[specify the resource name (WM_CLASS) of nsxiv's X window]:class:" \
+   "(-A --framerate)"{-A,--framerate}"+[specify a constant framerate to play animations]:frame:" \
+   "(-g --geometry)"{-g,--geometry}"+[specify a window position and size]:geom:geom_hint" \
+   "(-G --gamma)"{-G,--gamma}"+[specify a gamma value (-32..32)]:gamma:" \
+   "(-S --ss-delay)"{-S,--ss-delay}"+[set the delay given, in seconds, for the slideshow]:delay:delay_hint" \
+   "(-s --scale-mode)"{-s,--scale-mode}"+[set the scale mode matching the character given]:modes:$modes" \
+   "(-z --zoom)"{-z,--zoom}"+[zoom percent level]:zoom:" \
+   "(-e --embed)"{-e,--embed}"+[specify a WID to embed nsxiv's window into]:embed:" \
+   "(-n --start-at)"{-n,--start-at}"+[start at picture number]:num:" \
+   "(-a --animate)"{-a,--animate}"[play animations of multi-frame images]" \
+   "(-b --no-bar)"{-b,--no-bar}"[starts the status bar hidden]" \
+   "(-f --fullscreen)"{-f,--fullscreen}"[start in fullscreen mode]" \
+   "(-i --stdin)"{-i,--stdin}"[read names of files to open from standard input]" \
+   "(-o --stdout)"{-o,--stdout}"[print all marked images when quitting]" \
+   "(-p --private)"{-p,--private}"[don't write to any cache or temporary files]" \
+   "(-q --quiet)"{-q,--quiet}"[be quiet, disable warnings to standard error]" \
+   "(-r --recursive)"{-r,--recursive}"[search the given directories recursively for images to view]" \
+   "(-t --thumbnail)"{-t,--thumbnail}"[starts in thumbnail mode]" \
+   "(-Z --zoom-100)"{-Z,--zoom-100}"[same as \`-z 100\`]" \
+   "(-0 --null)"{-0,--null}"[NULL separated file list for: -o, -i and key-handler]" \
+   "(--anti-alias)--anti-alias[enables anti-aliasing, give \`no\` to disable it.]" \
+   '*:files:_files' \
+
+delay_hint() { _message 'delay can be a decimal' }
+geom_hint() { _message 'WIDTHxHEIGHT+/-Xoffset+/-Yoffset' }
