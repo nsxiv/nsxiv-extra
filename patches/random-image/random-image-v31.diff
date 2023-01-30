@@ -1,5 +1,5 @@
 diff --git a/commands.c b/commands.c
-index 1ba0363..f0970ea 100644
+index a4ae38d..3798d38 100644
 --- a/commands.c
 +++ b/commands.c
 @@ -476,3 +476,35 @@ bool ct_select(arg_t _)
@@ -59,7 +59,7 @@ index 76b1330..82e2aef 100644
  /* image mode */
  #define i_alternate { ci_alternate, MODE_IMAGE }
 diff --git a/config.def.h b/config.def.h
-index 198c696..1974ff9 100644
+index a0935f6..610b79c 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -98,6 +98,7 @@ static const keymap_t keys[] = {
@@ -71,12 +71,12 @@ index 198c696..1974ff9 100644
  	{ 0,            XK_D,             g_remove_image,       None },
  	{ ControlMask,  XK_h,             g_scroll_screen,      DIR_LEFT },
 diff --git a/main.c b/main.c
-index 8ee5b9d..8949ff5 100644
+index eed945c..04ceb9e 100644
 --- a/main.c
 +++ b/main.c
-@@ -867,6 +867,7 @@ int main(int argc, char *argv[])
- 	setup_signal(SIGCHLD, sigchld);
- 	setup_signal(SIGPIPE, SIG_IGN);
+@@ -863,6 +863,7 @@ int main(int argc, char *argv[])
+ 	setup_signal(SIGCHLD, SIG_DFL, SA_RESTART|SA_NOCLDSTOP|SA_NOCLDWAIT);
+ 	setup_signal(SIGPIPE, SIG_IGN, 0);
  
 +	srand(time(NULL));
  	setlocale(LC_COLLATE, "");
