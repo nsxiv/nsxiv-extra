@@ -1,18 +1,18 @@
-From 00f6f4059b559b3b44c7d434f4918e7cb29de4bb Mon Sep 17 00:00:00 2001
+From 64ad78f1b53bc8a0174b78df6cdd46e85563c141 Mon Sep 17 00:00:00 2001
 From: NRK <nrk@disroot.org>
 Date: Mon, 10 Oct 2022 22:54:41 +0600
-Subject: [PATCH 8/8] patch: whitelist cache dirs
+Subject: [PATCH] patch: whitelist cache dirs
 
 ---
  config.def.h | 10 ++++++++++
- thumbs.c     | 26 +++++++++++++++++++++++++-
- 2 files changed, 35 insertions(+), 1 deletion(-)
+ thumbs.c     | 25 ++++++++++++++++++++++++-
+ 2 files changed, 34 insertions(+), 1 deletion(-)
 
 diff --git a/config.def.h b/config.def.h
-index f8efe2a..f6fec03 100644
+index a0935f6..ed49bb5 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -77,6 +77,16 @@ static const int thumb_sizes[] = { 32, 64, 96, 128, 160 };
+@@ -79,6 +79,16 @@ static const int thumb_sizes[] = { 32, 64, 96, 128, 160 };
  /* thumbnail size at startup, index into thumb_sizes[]: */
  static const int THUMB_SIZE = 3;
  
@@ -30,18 +30,10 @@ index f8efe2a..f6fec03 100644
  #ifdef INCLUDE_MAPPINGS_CONFIG
  
 diff --git a/thumbs.c b/thumbs.c
-index 40a3d93..eb545a1 100644
+index b5da098..fa51487 100644
 --- a/thumbs.c
 +++ b/thumbs.c
-@@ -21,6 +21,7 @@
- #define INCLUDE_THUMBS_CONFIG
- #include "config.h"
- 
-+#include <assert.h>
- #include <errno.h>
- #include <stdio.h>
- #include <stdlib.h>
-@@ -35,6 +36,29 @@
+@@ -36,6 +36,29 @@
  
  static char *cache_dir;
  
@@ -71,7 +63,7 @@ index 40a3d93..eb545a1 100644
  static char* tns_cache_filepath(const char *filepath)
  {
  	size_t len;
-@@ -80,7 +104,7 @@ static void tns_cache_write(Imlib_Image im, const char *filepath, bool force)
+@@ -80,7 +103,7 @@ static void tns_cache_write(Imlib_Image im, const char *filepath, bool force)
  	struct utimbuf times;
  	Imlib_Load_Error err;
  
@@ -81,5 +73,5 @@ index 40a3d93..eb545a1 100644
  
  	if (stat(filepath, &fstats) < 0)
 -- 
-2.35.1
+2.38.1
 
