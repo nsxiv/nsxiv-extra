@@ -16,5 +16,5 @@ nsxiv-pipe < /path/to/image.png
 
 # Authors
 
-* mamg22 <marcomonizg@gmail.com>
+* mamg22
 * NRK \<nrk at disroot dot org>
