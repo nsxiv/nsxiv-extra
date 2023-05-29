@@ -1,20 +1,9 @@
-From 751b3186e5a4870397d3bbe9e3be1ebb86ea0b99 Mon Sep 17 00:00:00 2001
-From: NRK <nrk@disroot.org>
-Date: Fri, 26 Nov 2021 16:36:41 +0600
-Subject: [PATCH] add keybinding to toggle window background color
-
----
- commands.c   | 10 ++++++++++
- commands.h   |  2 ++
- config.def.h |  1 +
- 3 files changed, 13 insertions(+)
-
 diff --git a/commands.c b/commands.c
-index 9ee83ec..3478bed 100644
+index 97cadf2..f198efb 100644
 --- a/commands.c
 +++ b/commands.c
-@@ -247,6 +247,16 @@ bool cg_change_gamma(arg_t d)
- 	}
+@@ -253,6 +253,16 @@ bool cg_change_contrast(arg_t d)
+ 	return change_color_modifier(d, &img.contrast);
  }
  
 +bool cg_toggle_winbg(arg_t _)
@@ -31,30 +20,30 @@ index 9ee83ec..3478bed 100644
  {
  	if (prefix > 0)
 diff --git a/commands.h b/commands.h
-index 74e2638..064ccef 100644
+index 4e694f0..8552215 100644
 --- a/commands.h
 +++ b/commands.h
-@@ -20,6 +20,7 @@ bool cg_toggle_fullscreen(arg_t);
+@@ -21,6 +21,7 @@ bool cg_switch_mode(arg_t);
+ bool cg_toggle_bar(arg_t);
+ bool cg_toggle_fullscreen(arg_t);
  bool cg_toggle_image_mark(arg_t);
++bool cg_toggle_winbg(arg_t);
  bool cg_unmark_all(arg_t);
  bool cg_zoom(arg_t);
-+bool cg_toggle_winbg(arg_t);
  /* image mode */
- bool ci_alternate(arg_t);
- bool ci_cursor_navigate(arg_t);
-@@ -63,6 +64,7 @@ bool ct_select(arg_t);
+@@ -67,6 +68,7 @@ bool ct_select(arg_t);
+ #define g_toggle_bar { cg_toggle_bar, MODE_ALL }
+ #define g_toggle_fullscreen { cg_toggle_fullscreen, MODE_ALL }
  #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
++#define g_toggle_winbg { cg_toggle_winbg, MODE_ALL }
  #define g_unmark_all { cg_unmark_all, MODE_ALL }
  #define g_zoom { cg_zoom, MODE_ALL }
-+#define g_toggle_winbg { cg_toggle_winbg, MODE_ALL }
  
- /* image mode */
- #define i_alternate { ci_alternate, MODE_IMAGE }
 diff --git a/config.def.h b/config.def.h
-index 1e102fe..e3aeea9 100644
+index 5d4e97a..4b1cf20 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -86,6 +86,7 @@ static const keymap_t keys[] = {
+@@ -96,6 +96,7 @@ static const keymap_t keys[] = {
  	{ 0,            XK_Return,        g_switch_mode,        None },
  	{ 0,            XK_f,             g_toggle_fullscreen,  None },
  	{ 0,            XK_b,             g_toggle_bar,         None },
@@ -62,6 +51,3 @@ index 1e102fe..e3aeea9 100644
  	{ ControlMask,  XK_x,             g_prefix_external,    None },
  	{ 0,            XK_g,             g_first,              None },
  	{ 0,            XK_G,             g_n_or_last,          None },
--- 
-2.35.1
-
