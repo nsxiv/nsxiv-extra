@@ -6,9 +6,6 @@ index 426a05a..ba3a14a 100644
  #include <sys/stat.h>
  #include <unistd.h>
  
-+extern fileinfo_t *files;
-+extern int filecnt, fileidx;
-+
  #if HAVE_LIBEXIF
  #include <libexif/exif-data.h>
  #endif
