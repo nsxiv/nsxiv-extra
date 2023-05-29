@@ -1,9 +1,9 @@
 diff --git a/image.c b/image.c
-index f2b3b09..1be574a 100644
+index 426a05a..ba3a14a 100644
 --- a/image.c
 +++ b/image.c
-@@ -28,6 +28,9 @@
- #include <sys/types.h>
+@@ -29,6 +29,9 @@
+ #include <sys/stat.h>
  #include <unistd.h>
  
 +extern fileinfo_t *files;
@@ -12,7 +12,7 @@ index f2b3b09..1be574a 100644
  #if HAVE_LIBEXIF
  #include <libexif/exif-data.h>
  #endif
-@@ -496,8 +499,10 @@ static bool img_fit(img_t *img)
+@@ -680,8 +683,10 @@ static bool img_fit(img_t *img)
  {
  	float z, zw, zh;
  
@@ -23,38 +23,38 @@ index f2b3b09..1be574a 100644
 +		return true;
 +	}
  
- 	zw = (float) img->win->w / (float) img->w;
- 	zh = (float) img->win->h / (float) img->h;
-@@ -519,7 +524,7 @@ static bool img_fit(img_t *img)
+ 	zw = (float)img->win->w / (float)img->w;
+ 	zh = (float)img->win->h / (float)img->h;
+@@ -703,7 +708,7 @@ static bool img_fit(img_t *img)
  	z = MIN(z, img->scalemode == SCALE_DOWN ? 1.0 : ZOOM_MAX);
  
- 	if (ABS(img->zoom - z) > 1.0/MAX(img->w, img->h)) {
+ 	if (ABS(img->zoom - z) > 1.0 / MAX(img->w, img->h)) {
 -		img->zoom = z;
 +		files[fileidx].zoom = img->zoom = z;
- 		img->dirty = true;
+ 		img->dirty = title_dirty = true;
  		return true;
  	} else {
-@@ -691,12 +696,14 @@ bool img_zoom_to(img_t *img, float z)
+@@ -849,12 +854,15 @@ bool img_zoom_to(img_t *img, float z)
  bool img_zoom(img_t *img, int d)
  {
- 	int i = d > 0 ? 0 : ARRLEN(zoom_levels)-1;
+ 	int i = d > 0 ? 0 : (int)ARRLEN(zoom_levels) - 1;
 +	if(files[fileidx].zoom)
 +		img->zoom = files[fileidx].zoom;
- 	while (i >= 0 && i < ARRLEN(zoom_levels) && (d > 0 ?
- 	       zoom_levels[i]/100 <= img->zoom : zoom_levels[i]/100 >= img->zoom))
+ 	while (i >= 0 && i < (int)ARRLEN(zoom_levels) &&
+ 	       (d > 0 ? zoom_levels[i] / 100 <= img->zoom : zoom_levels[i] / 100 >= img->zoom))
  	{
  		i += d;
  	}
- 	i = MIN(MAX(i, 0), ARRLEN(zoom_levels)-1);
+ 	i = MIN(MAX(i, 0), (int)ARRLEN(zoom_levels) - 1);
 +	files[fileidx].zoom = zoom_levels[i]/100;
- 	return img_zoom_to(img, zoom_levels[i]/100);
+ 	return img_zoom_to(img, zoom_levels[i] / 100);
  }
  
 diff --git a/main.c b/main.c
-index e70c642..791b3c9 100644
+index fed9528..891c5fe 100644
 --- a/main.c
 +++ b/main.c
-@@ -132,6 +132,7 @@ static void check_add_file(char *filename, bool given)
+@@ -146,6 +146,7 @@ static void check_add_file(const char *filename, bool given)
  
  	files[fileidx].name = estrdup(filename);
  	files[fileidx].path = path;
@@ -63,10 +63,10 @@ index e70c642..791b3c9 100644
  		files[fileidx].flags |= FF_WARN;
  	fileidx++;
 diff --git a/nsxiv.h b/nsxiv.h
-index 8d5af02..db0fc62 100644
+index 7e373c2..b07443d 100644
 --- a/nsxiv.h
 +++ b/nsxiv.h
-@@ -126,6 +126,7 @@ typedef struct {
+@@ -103,6 +103,7 @@ typedef struct {
  	const char *name; /* as given by user */
  	const char *path; /* always absolute */
  	fileflags_t flags;
