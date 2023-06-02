@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # Opens an archive in nsxiv.
 
 if [ "$1" = "" ]; then
@@ -39,8 +39,8 @@ exit_file_name="$(echo "$exit_output" | cut -f3)"
 exit_file_name="$(basename "$exit_file_name")"
 
 if [ -n "$exit_file_name" ]; then
-    if  [ "$exit_file_index" == "1" ] ||
-        [ "$exit_file_index" == "$exit_file_count" ];
+    if  [ "$exit_file_index" = "1" ] ||
+        [ "$exit_file_index" = "$exit_file_count" ];
     then
         rm -f "$nsxiv_session_file"
     elif [ "$exit_file_index" != "$file_index" ]; then
