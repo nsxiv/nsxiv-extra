@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+
+die() {
+	[ -n "$1" ] && echo "$1" >&2
+	exit 1
+}
+
+setup_mntcmd() {
+	[ -n "$NSXIV_CB_MNT" ] && return
+	# TODO: support more archive mounters
+	if command -v fuse-archive >/dev/null 2>&1; then
+		NSXIV_CB_MNT="fuse-archive -q"
+	else
+		die "no supported archive mounters found"
+	fi
+}
+
+main() {
+	[ -z "$1" ] && die "no arguments given"
+	[ $# -gt 1 ] && die "too many arguments"
+
+	setup_mntcmd
+
+	base=$(basename "$1")
+	tmp="${TMPDIR:-/tmp}/nsxiv_cb$$_${base}"
+	mkdir "$tmp" || die
+	$NSXIV_CB_MNT "$1" "$tmp" || die
+	trap 'fusermount -u "$tmp"; rmdir "$tmp"' EXIT
+
+	session_dir="${XDG_DATA_HOME:-$HOME/.local/share}/nsxiv-cb"
+	session="${session_dir}/${base}.tsv"
+	if [ -s "$session" ]; then
+		index="$(cut -f 1 "$session")"
+		endindex="$(cut -f 2 "$session")"
+		# reset index if it's at the end already
+		[ "$index" -ge "$endindex" ] && index="1"
+	else
+		index="1"
+	fi
+
+	mkdir -p "$session_dir" || die
+	NSXIV_CB_OUTPUT="$session" nsxiv -n "$index" -pqr -s w "$tmp"
+}
+
+main "$@"
