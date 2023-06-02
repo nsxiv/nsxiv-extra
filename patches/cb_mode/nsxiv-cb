@@ -6,11 +6,11 @@ if [ "$1" = "" ]; then
     exit 1
 fi
 
-CB_FILE="$1"
+cb_file="$1"
 
 mnt="$(mktemp -d "${TMPDIR:-/tmp}/nsxiv-cb-archive-XXX")"
 
-fuse-archive "$CB_FILE" "$mnt" -o auto_unmount
+fuse-archive "$cb_file" "$mnt" -o auto_unmount
 
 cleanup () {
     fusermount -u "$mnt"
@@ -18,34 +18,34 @@ cleanup () {
 }
 trap cleanup EXIT
 
-CB_FILE_DIRNAME="$(dirname "$CB_FILE")"
-CB_FILE_BASE="$(basename "$CB_FILE")"
-CB_FILE_BASE_HASH="$(printf "%s" "$CB_FILE_BASE" | md5sum | cut -d ' ' -f 1)"
-NSXIV_SHARE_PATH="$HOME/.local/share/nsxiv"
-NSXIV_SESSION_PATH="${NSXIV_SHARE_PATH}/session"
-NSXIV_SESSION_FILE="${NSXIV_SESSION_PATH}/${CB_FILE_BASE_HASH}.tsv"
+cb_file_dirname="$(dirname "$cb_file")"
+cb_file_base="$(basename "$cb_file")"
+cb_file_hash="$(printf "%s" "$cb_file_base" | md5sum | cut -d ' ' -f 1)"
+nsxiv_share_path="$HOME/.local/share/nsxiv"
+nsxiv_session_path="${nsxiv_share_path}/session"
+nsxiv_session_file="${nsxiv_session_path}/${cb_file_hash}.tsv"
 
-if [ -e "$NSXIV_SESSION_FILE" ]; then
-    NSXIV_SESSION_FILE_INDEX="$(cut -f1 "$NSXIV_SESSION_FILE")"
+if [ -e "$nsxiv_session_file" ]; then
+    file_index="$(cut -f1 "$nsxiv_session_file")"
 else
-    NSXIV_SESSION_FILE_INDEX=1
+    file_index=1
 fi
 
-EXIT_OUTPUT="$(nsxiv -a -b -p -s w -q -r -C -n"$NSXIV_SESSION_FILE_INDEX" "$mnt")"
+exit_output="$(nsxiv -a -b -p -s w -q -r -C -n"$file_index" "$mnt")"
 
-EXIT_FILE_INDEX="$(echo "$EXIT_OUTPUT" | cut -f1)"
-EXIT_FILE_COUNT="$(echo "$EXIT_OUTPUT" | cut -f2)"
-EXIT_FILE_NAME="$(echo "$EXIT_OUTPUT" | cut -f3)"
-EXIT_FILE_NAME="$(basename "$EXIT_FILE_NAME")"
+exit_file_index="$(echo "$exit_output" | cut -f1)"
+exit_file_count="$(echo "$exit_output" | cut -f2)"
+exit_file_name="$(echo "$exit_output" | cut -f3)"
+exit_file_name="$(basename "$exit_file_name")"
 
-if [ -n "$EXIT_FILE_NAME" ]; then
-    if  [ "$EXIT_FILE_INDEX" == "1" ] ||
-        [ "$EXIT_FILE_INDEX" == "$EXIT_FILE_COUNT" ];
+if [ -n "$exit_file_name" ]; then
+    if  [ "$exit_file_index" == "1" ] ||
+        [ "$exit_file_index" == "$exit_file_count" ];
     then
-        rm -f "$NSXIV_SESSION_FILE"
-    elif [ "$EXIT_FILE_INDEX" != "$NSXIV_SESSION_FILE_INDEX" ]; then
-        printf '%s\t%s\t%s\t%s\t%s' "$EXIT_FILE_INDEX" "$EXIT_FILE_COUNT" \
-            "$EXIT_FILE_NAME" "$CB_FILE_BASE" "$CB_FILE_DIRNAME" >"$NSXIV_SESSION_FILE"
+        rm -f "$nsxiv_session_file"
+    elif [ "$exit_file_index" != "$file_index" ]; then
+        printf '%s\t%s\t%s\t%s\t%s' "$exit_file_index" "$exit_file_count" \
+            "$exit_file_name" "$cb_file_base" "$cb_file_dirname" >"$nsxiv_session_file"
     fi
 else
     echo "Unknown error, not saving." >&2
