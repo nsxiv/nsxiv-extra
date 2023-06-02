@@ -23,6 +23,7 @@ cb_file_base="$(basename "$cb_file")"
 cb_file_hash="$(printf "%s" "$cb_file_base" | md5sum | cut -d ' ' -f 1)"
 nsxiv_share_path="$HOME/.local/share/nsxiv"
 nsxiv_session_path="${nsxiv_share_path}/session"
+mkdir -p "$nsxiv_session_path" || { echo "failed to make directory" >&2; exit 1; }
 nsxiv_session_file="${nsxiv_session_path}/${cb_file_hash}.tsv"
 
 if [ -e "$nsxiv_session_file" ]; then
