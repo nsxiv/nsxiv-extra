@@ -40,22 +40,14 @@ EXIT_FILE_NAME="$(echo "$EXIT_OUTPUT" | cut -f3)"
 EXIT_FILE_NAME="$(basename "$EXIT_FILE_NAME")"
 
 if [ -n "$EXIT_FILE_NAME" ]; then
-    if [ "$EXIT_FILE_INDEX" == "1" ]; then
-        if [ -e "$NSXIV_SESSION_FILE" ]; then
-            rm "$NSXIV_SESSION_FILE"
-        fi
-        exit 0
-    fi
-    if [ "$EXIT_FILE_INDEX" == "$EXIT_FILE_COUNT" ]; then
-        if [ -e "$NSXIV_SESSION_FILE" ]; then
-            rm "$NSXIV_SESSION_FILE"
-        fi
-        exit 0
-    fi
-    if [ "$EXIT_FILE_INDEX" != "$NSXIV_SESSION_FILE_INDEX" ]; then
-        printf '%s\t%s\t%s\t%s\t%s' "$EXIT_FILE_INDEX" "$EXIT_FILE_COUNT" "$EXIT_FILE_NAME" "$CB_FILE_BASE" "$CB_FILE_DIRNAME" >"$NSXIV_SESSION_FILE"
+    if  [ "$EXIT_FILE_INDEX" == "1" ] ||
+        [ "$EXIT_FILE_INDEX" == "$EXIT_FILE_COUNT" ];
+    then
+        rm -f "$NSXIV_SESSION_FILE"
+    elif [ "$EXIT_FILE_INDEX" != "$NSXIV_SESSION_FILE_INDEX" ]; then
+        printf '%s\t%s\t%s\t%s\t%s' "$EXIT_FILE_INDEX" "$EXIT_FILE_COUNT" \
+            "$EXIT_FILE_NAME" "$CB_FILE_BASE" "$CB_FILE_DIRNAME" >"$NSXIV_SESSION_FILE"
     fi
 else
     echo "Unknown error, not saving." >&2
 fi
-
