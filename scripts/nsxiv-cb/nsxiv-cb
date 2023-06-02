@@ -39,7 +39,9 @@ main() {
 	fi
 
 	mkdir -p "$session_dir" || die
-	NSXIV_CB_OUTPUT="$session" nsxiv -n "$index" -pqr -s w "$tmp"
+	session_tmp="${TMPDIR:-/tmp}/nsxiv_cb_$$"
+	NSXIV_CB_OUTPUT="$session_tmp" nsxiv -n "$index" -pqr -s w "$tmp"
+	mv -f "$session_tmp" "$session"
 }
 
 main "$@"
