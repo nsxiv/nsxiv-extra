@@ -33,7 +33,7 @@ merge conflicts or broken functionality on upgrade.
 | [dmenu-search](patches/dmenu-search) | Search the filelist using `dmenu` |
 | [color-invert](patches/color-invert) | Invert image colors |
 | [square-thumbs](patches/square-thumbs) | Toggleable square thumbnails |
-| [cb_mode](patches/cb_mode) | Verbose exit for `nsxiv-cb` |
+| [nsxiv-cb](patches/nsxiv-cb) | Open image archives (comic books) |
 
 For patch submissions please use the following format:
 
@@ -62,7 +62,6 @@ them to fit their use-cases.
 | [nsxiv-anti-alias](scripts/nsxiv-anti-alias) | Automatically toggle anti-aliasing based on image resolutions. |
 | [nsxiv-open](scripts/nsxiv-open) | Try to open every given file with nsxiv by transforming them. |
 | [nsxiv-fill](scripts/nsxiv-fill) | Set nsxiv's window size equal to the image being opened. |
-| [nsxiv-cb](patches/cb_mode) | Open image archives with `nsxiv` |
 | [misc](scripts/MISC.md) | Misc oneliners and other useful scripts. |
 
 For script submissions, it is highly encouraged (but not required) to use POSIX
