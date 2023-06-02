@@ -62,6 +62,7 @@ them to fit their use-cases.
 | [nsxiv-open](scripts/nsxiv-open) | Try to open every given file with nsxiv by transforming them. |
 | [nsxiv-fill](scripts/nsxiv-fill) | Set nsxiv's window size equal to the image being opened. |
 | [nsxiv-cb](scripts/nsxiv-cb) | Open image archives (comic books) |
+| [sxiv-manga-reader](https://git.sr.ht/~q3cpma/sxiv-manga-reader) | Similar to `nsxiv-cb` but has a different set of dependencies and features (requires patching nsxiv) |
 | [misc](scripts/MISC.md) | Misc oneliners and other useful scripts. |
 
 For script submissions, it is highly encouraged (but not required) to use POSIX
