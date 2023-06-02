@@ -26,11 +26,11 @@ NSXIV_SESSION_PATH="${NSXIV_SHARE_PATH}/session"
 NSXIV_SESSION_FILE="${NSXIV_SESSION_PATH}/${CB_FILE_BASE_HASH}.tsv"
 
 if [ -e "$NSXIV_SESSION_FILE" ]; then
-  NSXIV_SESSION_FILE_CONTENTS="$(cat "$NSXIV_SESSION_FILE")"
-  NSXIV_SESSION_FILE_INDEX="$(echo "$NSXIV_SESSION_FILE_CONTENTS" | cut -f1)"
+    NSXIV_SESSION_FILE_CONTENTS="$(cat "$NSXIV_SESSION_FILE")"
+    NSXIV_SESSION_FILE_INDEX="$(echo "$NSXIV_SESSION_FILE_CONTENTS" | cut -f1)"
 else
-  NSXIV_SESSION_FILE_INDEX=1
-  echo "Session file not found. Starting from beginning."
+    NSXIV_SESSION_FILE_INDEX=1
+    echo "Session file not found. Starting from beginning."
 fi
 
 EXIT_OUTPUT="$(nsxiv -a -b -p -s w -q -r -C -n"$NSXIV_SESSION_FILE_INDEX" "$mnt")"
@@ -41,27 +41,27 @@ EXIT_FILE_NAME="$(echo "$EXIT_OUTPUT" | cut -f3)"
 EXIT_FILE_NAME="$(basename "$EXIT_FILE_NAME")"
 
 if [ -n "$EXIT_FILE_NAME" ]; then
-  if [ "$EXIT_FILE_INDEX" == "1" ]; then
-    echo "First page, not saving."
-    if [ -e "$NSXIV_SESSION_FILE" ]; then
-      rm "$NSXIV_SESSION_FILE"
+    if [ "$EXIT_FILE_INDEX" == "1" ]; then
+        echo "First page, not saving."
+        if [ -e "$NSXIV_SESSION_FILE" ]; then
+            rm "$NSXIV_SESSION_FILE"
+        fi
+        exit 0
     fi
-    exit 0
-  fi
-  if [ "$EXIT_FILE_INDEX" == "$EXIT_FILE_COUNT" ]; then
-    echo "Last page, not saving. Deleting NSXIV_HIST_FILE."
-    if [ -e "$NSXIV_SESSION_FILE" ]; then
-      rm "$NSXIV_SESSION_FILE"
+    if [ "$EXIT_FILE_INDEX" == "$EXIT_FILE_COUNT" ]; then
+        echo "Last page, not saving. Deleting NSXIV_HIST_FILE."
+        if [ -e "$NSXIV_SESSION_FILE" ]; then
+            rm "$NSXIV_SESSION_FILE"
+        fi
+        exit 0
     fi
-    exit 0
-  fi
-  if [ "$EXIT_FILE_INDEX" != "$NSXIV_SESSION_FILE_INDEX" ]; then
-    echo "Saving to '$NSXIV_SESSION_FILE'."
-    printf '%s\t%s\t%s\t%s\t%s' "$EXIT_FILE_INDEX" "$EXIT_FILE_COUNT" "$EXIT_FILE_NAME" "$CB_FILE_BASE" "$CB_FILE_DIRNAME" >"$NSXIV_SESSION_FILE"
-  else
-    echo "Same index as in history file, not saving."
-  fi
+    if [ "$EXIT_FILE_INDEX" != "$NSXIV_SESSION_FILE_INDEX" ]; then
+        echo "Saving to '$NSXIV_SESSION_FILE'."
+        printf '%s\t%s\t%s\t%s\t%s' "$EXIT_FILE_INDEX" "$EXIT_FILE_COUNT" "$EXIT_FILE_NAME" "$CB_FILE_BASE" "$CB_FILE_DIRNAME" >"$NSXIV_SESSION_FILE"
+    else
+        echo "Same index as in history file, not saving."
+    fi
 else
-  echo "Unknown error, not saving."
+    echo "Unknown error, not saving."
 fi
 
