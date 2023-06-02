@@ -1,0 +1,98 @@
+0001-add-cb_mode.patch
+4cd48b55ea984820351a64 Mon Sep 17 00:00:00 2001
+From: GrimNight <grimnight@codeberg>
+Date: Thu, 1 Jun 2023 23:10:53 +0000
+Subject: [PATCH] add: cb_mode
+
+---
+ commands.c  | 6 ++++++
+ etc/nsxiv.1 | 6 ++++++
+ nsxiv.h     | 1 +
+ options.c   | 5 +++++
+ 4 files changed, 18 insertions(+)
+
+diff --git a/commands.c b/commands.c
+index 97cadf2..809a687 100644
+--- a/commands.c
++++ b/commands.c
+@@ -49,12 +49,18 @@ bool cg_quit(arg_t status)
+ {
+ 	unsigned int i;
+ 
++	if (options->cb_mode) {
++		printf("%d\t%d\t%s\n", (fileidx+1), filecnt, files[fileidx].name);
++		exit(status);
++	}
++
+ 	if (options->to_stdout && markcnt > 0) {
+ 		for (i = 0; i < (unsigned int)filecnt; i++) {
+ 			if (files[i].flags & FF_MARK)
+ 				printf("%s%c", files[i].name, options->using_null ? '\0' : '\n');
+ 		}
+ 	}
++
+ 	exit(status);
+ 	return None; /* silence tcc warning */
+ }
+diff --git a/etc/nsxiv.1 b/etc/nsxiv.1
+index e2fb4c8..3e7e33d 100644
+--- a/etc/nsxiv.1
++++ b/etc/nsxiv.1
+@@ -85,6 +85,12 @@ Enable private mode, in which nsxiv does not write any cache or temporary files.
+ .B "\-q, \-\-quiet"
+ Be quiet, and disable warnings to standard error stream.
+ .TP
++.B "\-C, \-\-cb_mode"
++Comic Book mode. On exit, print file index + 1, file count and filename,
++separated by tabs. Prevents
++.B "\-o, \-\-stdout"
++from working.
++.TP
+ .B "\-r, \-\-recursive"
+ Search the given directories recursively for images to view.
+ .TP
+diff --git a/nsxiv.h b/nsxiv.h
+index 7e373c2..fb19e6d 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -262,6 +262,7 @@ struct opt {
+ 	bool thumb_mode;
+ 	bool clean_cache;
+ 	bool private_mode;
++	bool cb_mode;
+ };
+ 
+ extern const opt_t *options;
+diff --git a/options.c b/options.c
+index ef874ac..59907a1 100644
+--- a/options.c
++++ b/options.c
+@@ -75,6 +75,7 @@ void parse_options(int argc, char **argv)
+ 		{ "stdin",          'i',     OPTPARSE_NONE },
+ 		{ "class",          'N',     OPTPARSE_REQUIRED },
+ 		{ "start-at",       'n',     OPTPARSE_REQUIRED },
++		{ "cb_mode",        'C',     OPTPARSE_NONE },
+ 		{ "stdout",         'o',     OPTPARSE_NONE },
+ 		{ "private",        'p',     OPTPARSE_NONE },
+ 		{ "quiet",          'q',     OPTPARSE_NONE },
+@@ -124,6 +125,7 @@ void parse_options(int argc, char **argv)
+ 	_options.thumb_mode = false;
+ 	_options.clean_cache = false;
+ 	_options.private_mode = false;
++	_options.cb_mode = false;
+ 
+ 	if (argc > 0) {
+ 		s = strrchr(argv[0], '/');
+@@ -189,6 +191,9 @@ void parse_options(int argc, char **argv)
+ 		case 'N':
+ 			_options.res_name = op.optarg;
+ 			break;
++		case 'C':
++			_options.cb_mode = true;
++			break;
+ 		case 'o':
+ 			_options.to_stdout = true;
+ 			break;
+-- 
+2.40.1
+
