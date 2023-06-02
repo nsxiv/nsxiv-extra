@@ -69,8 +69,8 @@ For script submissions, it is highly encouraged (but not required) to use POSIX
 
 ## Exec excerpts
 
-Idioms, excerpts or full examples for `image-info`, `key-handler`, `thumb-info`
-and `win-title`.
+The [exec](./exec) directory contains idioms, excerpts or full examples for
+`image-info`, `key-handler`, `thumb-info` and `win-title`.
 
 ## Shell Completion
 
