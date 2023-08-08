@@ -4,7 +4,7 @@ TMPDIR="${TMPDIR:-/tmp}"
 tmp="$TMPDIR/nsxiv_rifle_$$"
 
 is_img_extension() {
-    grep -iE '\.(jpe?g|png|gif|svg|webp|tiff|heif|avif|ico|bmp)$'
+    grep -iE '\.(jpe?g|png|gif|svg|jxl|webp|tiff|heif|avif|ico|bmp|pam|pbm|ppm|tga|qoi|ff)$'
 }
 
 listfiles() {
