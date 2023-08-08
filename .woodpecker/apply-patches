@@ -1,12 +1,5 @@
 #!/usr/bin/env sh
 
-die() {
-    s="$1"
-    shift
-    printf "$s\n" "$@"
-    exit 1
-}
-
 searchversion() {
     printf "%s\n" "$nsxivlog" | while IFS= read -r sh; do
         eval "$sh"
@@ -46,7 +39,7 @@ nsxivlog="$(
 
     while IFS= read -r patch; do
         git apply --check -- "$patch" 2>/dev/null || {
-            printf "[ERROR]: Failed applying patch %s.\n" "$(basename -- "$patch")"
+            printf "[ERROR]: Failed applying patch %s.\n" "$(basename -- "$patch")" >&2
             ec=1
         }
     done
