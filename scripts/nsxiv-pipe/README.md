@@ -1,9 +1,7 @@
 # nsxiv-pipe
 
 This script allows piping images into `nsxiv` via draining the pipe into a temp
-file. The reason for this is because `Imlib2` (the image library nsxiv uses)
-cannot read from pipes
-([#296](https://codeberg.org/nsxiv/nsxiv/issues/296)).
+file. The temporary file will be automatically cleaned up on exit.
 `$TMPDIR` is respected if set.
 
 Example usage:

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 tmpfile="${TMPDIR:-/tmp}/nsxiv_pipe_$$"
-trap 'rm -f -- $tmpfile' EXIT
+trap 'rm -f -- $tmpfile' EXIT TERM INT
 
 if [ "$#" -eq 0 ]; then
     if [ -t 0 ]; then
