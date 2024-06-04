@@ -3,6 +3,8 @@
 # first, flags that quit; 2nd flags that accept an arg (+); and finally, switches flags.
 
 local modes="((d\:'[d]own' f\:'[f]fit' F\:'[F]ill' w\:'[w]idth' h\:'[h]eight'))"
+local delay_hint() { _message 'delay can be a decimal' }
+local geom_hint() { _message 'WIDTHxHEIGHT+/-Xoffset+/-Yoffset' }
 
    # (repeat) {flags}  [message]:var:action
 _arguments -S \
@@ -32,6 +34,3 @@ _arguments -S \
    "(--anti-alias)--anti-alias[enables anti-aliasing, give \`no\` to disable it]" \
    "(--alpha-layer)--alpha-layer[enables checkerboard background, give \`no\` to disable it]" \
    '*:files:_files' \
-
-delay_hint() { _message 'delay can be a decimal' }
-geom_hint() { _message 'WIDTHxHEIGHT+/-Xoffset+/-Yoffset' }
