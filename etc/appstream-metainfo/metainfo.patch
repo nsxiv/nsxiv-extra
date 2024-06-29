@@ -1,0 +1,45 @@
+From 0e8bc7a6d224c0a30564eb9e5a9df716b1936238 Mon Sep 17 00:00:00 2001
+From: Jakob <jakob@knugen.nu>
+Date: Wed, 26 Jun 2024 07:16:55 +0200
+Subject: [PATCH] Include appstream metadata
+
+---
+ etc/page.codeberg.nsxiv.nsxiv.metainfo.xml | 26 ++++++++++++++++++++++
+ 1 file changed, 26 insertions(+), 0 deletions(-)
+ create mode 100644 etc/page.codeberg.nsxiv.nsxiv.metainfo.xml
+
+diff --git a/etc/page.codeberg.nsxiv.nsxiv.metainfo.xml b/etc/page.codeberg.nsxiv.nsxiv.metainfo.xml
+new file mode 100644
+index 0000000..9429e69
+--- /dev/null
++++ b/etc/page.codeberg.nsxiv.nsxiv.metainfo.xml
+@@ -0,0 +1,26 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<component type="desktop-application">
++  <id>page.codeberg.nsxiv.nsxiv</id>
++
++  <name>nsxiv</name>
++  <summary>Neo (or New or Not) Simple (or Small or Suckless) X Image Viewer.</summary>
++
++  <metadata_license>FSFAP</metadata_license>
++  <project_license>GPL-2.0-or-later</project_license>
++
++  <description>
++    <p>
++      Nsxiv is a fork of the now-unmaintained sxiv with the purpose of being a (mostly) drop-in replacement for sxiv, maintaining its interface and adding simple, sensible features.
++    </p>
++  </description>
++
++  <launchable type="desktop-id">nsxiv.desktop</launchable>
++  <screenshots>
++    <screenshot type="default">
++      <image>https://codeberg.org/nsxiv/pages/raw/branch/master/img/image.png</image>
++    </screenshot>
++    <screenshot>
++      <image>https://codeberg.org/nsxiv/pages/raw/branch/master/img/thumb.png</image>
++    </screenshot>
++  </screenshots>
++</component>
+-- 
+2.39.2
+

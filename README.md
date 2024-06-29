@@ -68,6 +68,12 @@ them to fit their use-cases.
 For script submissions, it is highly encouraged (but not required) to use POSIX
 `sh` rather than `bash`, `zsh`, `Python`, etc.
 
+## Misc
+
+| Name | Comments |
+| :--  | :--      |
+| [appstream](etc/appstream-metainfo) | metadata file that allows nsxiv to show up in appstream software centers. |
+
 ## Exec excerpts
 
 The [exec](./exec) directory contains idioms, excerpts or full examples for

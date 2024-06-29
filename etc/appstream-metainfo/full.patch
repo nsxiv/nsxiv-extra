@@ -1,0 +1,85 @@
+From 0e8bc7a6d224c0a30564eb9e5a9df716b1936238 Mon Sep 17 00:00:00 2001
+From: Jakob <jakob@knugen.nu>
+Date: Wed, 26 Jun 2024 07:16:55 +0200
+Subject: [PATCH] Include appstream metadata
+
+---
+ Makefile                                   | 14 ++++++++++--
+ etc/page.codeberg.nsxiv.nsxiv.metainfo.xml | 26 ++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 2 deletions(-)
+ create mode 100644 etc/page.codeberg.nsxiv.nsxiv.metainfo.xml
+
+diff --git a/Makefile b/Makefile
+index b7ee37b..4ed8507 100644
+--- a/Makefile
++++ b/Makefile
+@@ -55,7 +55,7 @@ dump_cppflags:
+ clean:
+ 	rm -f *.o nsxiv version.h
+ 
+-install-all: install install-desktop install-icon
++install-all: install install-desktop install-icon install-metainfo
+ 
+ install-desktop:
+ 	@echo "INSTALL nsxiv.desktop"
+@@ -78,6 +78,16 @@ uninstall-icon:
+ 		rm -f "$$dir/nsxiv.png"; \
+ 	done
+ 
++install-metainfo:
++	@echo "INSTALL page.codeberg.nsxiv.nsxiv.metainfo.xml"
++	mkdir -p $(DESTDIR)$(PREFIX)/share/metainfo
++	cp etc/page.codeberg.nsxiv.nsxiv.metainfo.xml $(DESTDIR)$(PREFIX)/share/metainfo
++	chmod 644 $(DESTDIR)$(PREFIX)/share/metainfo/page.codeberg.nsxiv.nsxiv.metainfo.xml
++
++uninstall-metainfo:
++	@echo "REMOVE page.codeberg.nsxiv.nsxiv.metainfo.xml"
++	rm -f $(DESTDIR)$(PREFIX)/share/metainfo/page.codeberg.nsxiv.nsxiv.metainfo.xml
++
+ install: all
+ 	@echo "INSTALL bin/nsxiv"
+ 	mkdir -p $(DESTDIR)$(PREFIX)/bin
+@@ -93,7 +103,7 @@ install: all
+ 	cp etc/examples/* $(DESTDIR)$(EGPREFIX)
+ 	chmod 755 $(DESTDIR)$(EGPREFIX)/*
+ 
+-uninstall: uninstall-icon
++uninstall: uninstall-icon uninstall-metainfo
+ 	@echo "REMOVE bin/nsxiv"
+ 	rm -f $(DESTDIR)$(PREFIX)/bin/nsxiv
+ 	@echo "REMOVE nsxiv.1"
+diff --git a/etc/page.codeberg.nsxiv.nsxiv.metainfo.xml b/etc/page.codeberg.nsxiv.nsxiv.metainfo.xml
+new file mode 100644
+index 0000000..9429e69
+--- /dev/null
++++ b/etc/page.codeberg.nsxiv.nsxiv.metainfo.xml
+@@ -0,0 +1,26 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<component type="desktop-application">
++  <id>page.codeberg.nsxiv.nsxiv</id>
++
++  <name>nsxiv</name>
++  <summary>Neo (or New or Not) Simple (or Small or Suckless) X Image Viewer.</summary>
++
++  <metadata_license>FSFAP</metadata_license>
++  <project_license>GPL-2.0-or-later</project_license>
++
++  <description>
++    <p>
++      Nsxiv is a fork of the now-unmaintained sxiv with the purpose of being a (mostly) drop-in replacement for sxiv, maintaining its interface and adding simple, sensible features.
++    </p>
++  </description>
++
++  <launchable type="desktop-id">nsxiv.desktop</launchable>
++  <screenshots>
++    <screenshot type="default">
++      <image>https://codeberg.org/nsxiv/pages/raw/branch/master/img/image.png</image>
++    </screenshot>
++    <screenshot>
++      <image>https://codeberg.org/nsxiv/pages/raw/branch/master/img/thumb.png</image>
++    </screenshot>
++  </screenshots>
++</component>
+-- 
+2.39.2
+
