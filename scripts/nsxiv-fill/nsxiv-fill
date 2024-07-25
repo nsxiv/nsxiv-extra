@@ -10,6 +10,7 @@ dim="$(imlib2_load -vvj "$1" | grep -o -E 'WxH=([[:digit:]]+x[[:digit:]]+)')"
 dim="${dim#WxH=}"
 w="${dim%%x*}"
 h="${dim##*x}"
+
 if ! [ "$w" -eq "$w" ] 2>/dev/null || ! [ "$h" -eq "$h" ] 2>/dev/null; then
 	echo "Couldn't load the file" >&2
 	exit 1
@@ -18,7 +19,9 @@ fi
 if [ "$w" -gt "$maxw" ]; then
 	h=$(( (maxw * h) / w ))
 	w=$maxw
-elif [ "$h" -gt "$maxh" ]; then
+fi
+
+if [ "$h" -gt "$maxh" ]; then
 	w=$(( (maxh * w) / h ))
 	h=$maxh
 fi
