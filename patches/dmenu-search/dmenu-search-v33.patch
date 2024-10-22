@@ -1,0 +1,89 @@
+diff --git a/commands.c b/commands.c
+index 3257b1e..e4a56bd 100644
+--- a/commands.c
++++ b/commands.c
+@@ -250,6 +250,40 @@ bool cg_change_contrast(arg_t d)
+ 	return change_color_modifier(d, &img.contrast);
+ }
+ 
++bool cg_dmenu_search(arg_t _)
++{
++	extern char nsxiv_xid[64];
++	extern const char *const dmenu_cmd[];
++
++	char output[4096];
++	int i, rfd, wfd, goto_img = -1;
++	ssize_t n;
++
++	snprintf(nsxiv_xid, sizeof nsxiv_xid, "0x%.8lX", win.xwin);
++	if (spawn(&rfd, &wfd, 0, (char **)dmenu_cmd) < 0)
++		return false;
++	for (i = 0; i < filecnt; ++i) {
++		dprintf(wfd, "%s\n", files[i].name);
++	}
++	close(wfd);
++	if ((n = read(rfd, output, sizeof output - 1)) > 0) {
++		char *e = memchr(output, '\n', n);
++		if (e != NULL)
++			*e = '\0';
++		else
++			output[n] = '\0';
++		for (i = 0; i < filecnt; ++i) {
++			if (STREQ(output, files[i].name)) {
++				goto_img = i;
++				break;
++			}
++		}
++	}
++	close(rfd);
++
++	return navigate_to(goto_img);
++}
++
+ bool ci_navigate(arg_t n)
+ {
+ 	if (prefix > 0)
+diff --git a/commands.h b/commands.h
+index 4e694f0..b9d7155 100644
+--- a/commands.h
++++ b/commands.h
+@@ -23,6 +23,7 @@ bool cg_toggle_fullscreen(arg_t);
+ bool cg_toggle_image_mark(arg_t);
+ bool cg_unmark_all(arg_t);
+ bool cg_zoom(arg_t);
++bool cg_dmenu_search(arg_t);
+ /* image mode */
+ bool ci_alternate(arg_t);
+ bool ci_cursor_navigate(arg_t);
+@@ -69,6 +70,7 @@ bool ct_select(arg_t);
+ #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
+ #define g_unmark_all { cg_unmark_all, MODE_ALL }
+ #define g_zoom { cg_zoom, MODE_ALL }
++#define g_dmenu_search { cg_dmenu_search, MODE_ALL }
+ 
+ /* image mode */
+ #define i_alternate { ci_alternate, MODE_IMAGE }
+diff --git a/config.def.h b/config.def.h
+index ead1509..cd66a15 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -90,6 +90,11 @@ static const int THUMB_SIZE = 3;
+ #endif
+ #ifdef INCLUDE_MAPPINGS_CONFIG
+ 
++char nsxiv_xid[64]; /* will be set to nsxiv's xid when dmenu_search is invoked */
++const char *const dmenu_cmd[] = {
++	"dmenu", "-l", "16", "-w", nsxiv_xid, NULL
++};
++
+ /* these modifiers will be used when processing keybindings */
+ static const unsigned int USED_MODMASK = ShiftMask | ControlMask | Mod1Mask;
+ 
+@@ -109,6 +114,7 @@ static const keymap_t keys[] = {
+ 	{ 0,            XK_G,             g_n_or_last,          None },
+ 	{ 0,            XK_r,             g_reload_image,       None },
+ 	{ 0,            XK_D,             g_remove_image,       None },
++	{ 0,            XK_slash,         g_dmenu_search,       None },
+ 	{ ControlMask,  XK_h,             g_scroll_screen,      DIR_LEFT },
+ 	{ ControlMask,  XK_Left,          g_scroll_screen,      DIR_LEFT },
+ 	{ ControlMask,  XK_j,             g_scroll_screen,      DIR_DOWN },
