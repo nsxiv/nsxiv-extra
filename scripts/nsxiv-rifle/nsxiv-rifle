@@ -20,11 +20,11 @@ open_img() {
         count="$(listfiles "///${file%/*}" | grep -nF "$file")"
     fi
     if [ -n "$count" ]; then
-        nsxiv -i -n "${count%%:*}" "$@" -- < "$tmp"
+        nsxiv -i -n "${count%%:*}" "$@" < "$tmp"
     else
         # fallback incase file didn't have a valid extension, or we couldn't
         # find it inside the list
-        nsxiv "$@" -- "$file"
+        nsxiv "$file" "$@"
     fi
 }
 
@@ -37,15 +37,15 @@ for arg in argv[1:]:
 ___HEREDOC
 }
 
-[ "$1" = '--' ] && shift
-case "$1" in
-    "") echo "Usage: ${0##*/} PICTURES" >&2; exit 1 ;;
-    /*) open_img "$1" ;;
-    "~"/*) open_img "$HOME/${1#"~"/}" ;;
-    file:///*) open_img "$(uri2path "$1")" ;;
+file="$1"; shift;
+case "$file" in
+    "") echo "Usage: ${0##*/} PICTURE [OPTIONS...]" >&2; exit 1 ;;
+    /*) open_img "$file" "$@" ;;
+    "~"/*) open_img "$HOME/${file#"~"/}" "$@" ;;
+    file:///*) open_img "$(uri2path "$file")" "$@" ;;
     trash:///*)
         trash_dir="${XDG_DATA_HOME:-$HOME/.local/share}/Trash/files"
-        open_img "${trash_dir}$(uri2path "$1")" -N "nsxiv_trash"
+        open_img "${trash_dir}$(uri2path "$file")" -N "nsxiv_trash" "$@"
         ;;
-    *) open_img "$PWD/$1" ;;
+    *) open_img "$PWD/$file" "$@" ;;
 esac
