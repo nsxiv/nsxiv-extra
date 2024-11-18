@@ -2,6 +2,12 @@
 
 set -e
 
+usage() {
+    >&2 echo "usage: nsxiv-thumb [FILE...] [NSXIV_FLAG...] [-- FILE...]"
+}
+
+[ "$1" = -h ] && { usage; exit; }
+
 [ -z "$OPENER" ] && OPENER="xdg-open" # OPENER is `eval`ed
 [ -z "$CACHEDIR" ] && CACHEDIR="${NSXIV_THUMB_CACHE_DIR:-"${XDG_CACHE_HOME:-"$HOME/.cache"}/nsxiv-extra/nsxiv-thumb"}"
 # extension of thumbnails. can be jpg or png.
@@ -23,7 +29,25 @@ tmpdir="$(mktemp -d)" || {
 trap 'rm -rf -- "$tmpdir"' TERM INT EXIT HUP
 export tmpdir
 
-find '.' -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -printf "%P\0" \
+# move flags to $flags and keep filenames in $@
+argcount=$#
+flags=''
+isflag=0
+onlyfiles=0
+for arg in "$@"; do
+    if [ "$onlyfiles" = 1 ]; then
+        set -- "$@" "$arg"
+        continue
+    fi
+    case "$arg" in
+        --) onlyfiles=1 ;;
+        -*) isflag=1; flags="$flags $arg" ;;
+        *) [ "$isflag" = 1 ] && flags="$flags $arg" || set -- "$@" "$arg" ;;
+    esac
+done
+shift $argcount
+
+find "$@" -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -print0 \
     | xargs -r0 -n 1 -P "$MAXPROCS" sh -c '
         set -e
 
@@ -38,10 +62,17 @@ find '.' -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -printf "%P\0" \
         hash="$({ stat --printf "%F%i%n%s%W%Y" -- "$realpath"; printf "%s" "$SIZE" "$EXT"; } | sha512sum | cut -d" " -f1)"
         thumbfl="$CACHEDIR/$hash.$EXT"
         [ -s "$thumbfl" ] || ffmpegthumbnailer -i "$file" -o "$thumbfl" -m -s "$SIZE" 2> /dev/null
-        cp -- "$thumbfl" "$tmpdir/$file.$EXT"
+        mkdir -p "$tmpdir/$(dirname -- "$realpath")"
+        cp -- "$thumbfl" "$tmpdir/$realpath.$EXT"
     ' --
 
-{ "$NSXIV_EXEC" -0otp "$@" -- "$tmpdir"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
-    | sed -z "s|\.$EXT$||;s|^.*/||" \
+OLD_IFS="$IFS"
+IFS='
+'
+set -- "$@" $(find "$tmpdir" -type d)
+
+IFS="$OLD_IFS"
+{ "$NSXIV_EXEC" -0otp $flags "$@"; rm -rf -- "${tmpdir:?}" > /dev/null; } \
+    | sed -z "s|\.$EXT$||;s|^${tmpdir}||" \
     | sort -z \
-    | eval "xargs -r0 -I FILE $OPENER ./FILE"
+    | eval "xargs -r0 -I FILE $OPENER FILE"
