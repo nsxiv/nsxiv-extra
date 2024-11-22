@@ -11,6 +11,7 @@ EXT="jpg"
     cd "$1" || exit 1
 }
 
+trap 'rm -rf -- "$tmpdir"' TERM INT EXIT HUP
 mkdir -p -- "$CACHEDIR"
 ! command -v mktemp > /dev/null 2>&1 \
     || ! tmpdir="$(mktemp -d)" \
@@ -19,7 +20,6 @@ mkdir -p -- "$CACHEDIR"
         tmpdir="${TMPDIR:-/tmp}/nsxiv_$$"
         mkdir -p -- "$tmpdir"
     }
-trap 'rm -rf -- "$tmpdir"' TERM INT EXIT HUP
 
 find '.' \( -type f -o -type l \) -print \
     | while IFS= read -r file; do

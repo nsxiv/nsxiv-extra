@@ -22,11 +22,11 @@ export EXT
 export SIZE
 
 mkdir -p -- "$CACHEDIR"
+trap 'rm -rf -- "$tmpdir"' TERM INT EXIT HUP
 tmpdir="$(mktemp -d)" || {
     printf "%s: %s\n" "${0##*/}" "could not create temporary directory"
     exit 1
 }
-trap 'rm -rf -- "$tmpdir"' TERM INT EXIT HUP
 export tmpdir
 
 # move flags to $flags and keep filenames in $@
