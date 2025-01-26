@@ -11,7 +11,7 @@ _arguments -S \
    "(- : *)"{-v,--version}"[display version information]" \
    "(- : *)"{-h,--help}"[display help message]" \
    "(- : *)"{-c,--clean-cache}"[remove all orphaned (thumbnail) cache files]" \
-   "(-N --class)"{-N,--class}"+[specify the resource name (WM_CLASS) of nsxiv's X window]:class:" \
+   "(-N --name)"{-N,--name}"+[specify the window name (WM_CLASS Instance) of nsxiv's X window]:name:" \
    "(-A --framerate)"{-A,--framerate}"+[specify a constant framerate to play animations]:frame:" \
    "(-g --geometry)"{-g,--geometry}"+[specify a window position and size]:geom:geom_hint" \
    "(-G --gamma)"{-G,--gamma}"+[specify a gamma value (-32..32)]:gamma:" \
@@ -21,7 +21,7 @@ _arguments -S \
    "(-e --embed)"{-e,--embed}"+[specify a WID to embed nsxiv's window into]:embed:" \
    "(-n --start-at)"{-n,--start-at}"+[start at picture number]:num:" \
    "(-a --animate)"{-a,--animate}"[play animations of multi-frame images]" \
-   "(-b --no-bar)"{-b,--no-bar}"[starts the status bar hidden]" \
+   "(-b --no-bar)"{-b,--no-bar}"[disable statusbar]" \
    "(-f --fullscreen)"{-f,--fullscreen}"[start in fullscreen mode]" \
    "(-i --stdin)"{-i,--stdin}"[read names of files to open from standard input]" \
    "(-o --stdout)"{-o,--stdout}"[print all marked images when quitting]" \
@@ -33,4 +33,7 @@ _arguments -S \
    "(-0 --null)"{-0,--null}"[NULL separated file list for: -o, -i and key-handler]" \
    "(--anti-alias)--anti-alias[enables anti-aliasing, give \`no\` to disable it]" \
    "(--alpha-layer)--alpha-layer[enables checkerboard background, give \`no\` to disable it]" \
+   "(--cache-allow)--cache-allow[list of directories to whitelist for thumbnail caching]" \
+   "(--cache-deny)--cache-deny[list of directories to blacklist for thumbnail caching]" \
+   "(--bar)--bar[enable statusbar]" \
    '*:files:_files' \
