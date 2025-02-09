@@ -15,6 +15,7 @@ with some of the basics first. See the manual pages [gittutorial][] and
 [gittutorial]: https://www.man7.org/linux/man-pages/man7/gittutorial.7.html
 [giteveryday]: https://www.man7.org/linux/man-pages/man7/giteveryday.7.html
 
+
 ## Hacking
 
 The main method of customization is via editing _config.h_, a plain
@@ -72,6 +73,48 @@ For more complex functionality, you may also choose to directly edit the nsxiv
 source; but, the above method of writing custom functions for `config.h` is
 preferred as it can enable better compatibility between patches or with future
 versions of nsxiv, and requires less maintenance by the user.
+
+
+### Minimal Working Example
+
+Clone the nsxiv and nsxiv-extra repositories
+```bash
+git clone https://codeberg.org/nsxiv/nsxiv
+git clone https://codeberg.org/nsxiv/nsxiv-extra/
+```
+
+Create a new branch
+```bash
+cd nsxiv \
+  && git checkout -b my_branch
+```
+
+Install a patch compatible with newest nsxiv version (optional).
+For example the [random-image](https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/patches/random-image).
+```bash
+git am ../nsxiv-extra/patches/random-image/random-image-v33.patch
+```
+
+Customize settings (optional)
+```bash
+config_file="config.h"
+make "$config_file" # generate it. Alternative: cp -v config.def.h "$config_file"
+# Swap default foreground and background colors
+sed -i 's/white/TEMPCOLOR/g; s/black/white/g; s/TEMPCOLOR/black/g' "$config_file"
+```
+
+Compile && install. *nsxiv* README already has [this covered](https://codeberg.org/nsxiv/nsxiv#building)
+```bash
+make
+sudo make install
+```
+
+To apply other changes/patches first uninstall it
+```bash
+sudo make uninstall
+make clean
+```
+
 
 ## Making your config forward compatible
 
