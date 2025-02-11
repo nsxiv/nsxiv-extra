@@ -1,8 +1,20 @@
+From 7383a00cf4cb2e5011ff9060465616c97d2044ac Mon Sep 17 00:00:00 2001
+From: NRK <nrk@disroot.org>
+Date: Tue, 11 Feb 2025 14:15:03 +0000
+Subject: [PATCH] add keybind to switch to random image
+
+---
+ commands.c   | 32 ++++++++++++++++++++++++++++++++
+ commands.h   |  2 ++
+ config.def.h |  1 +
+ main.c       |  1 +
+ 4 files changed, 36 insertions(+)
+
 diff --git a/commands.c b/commands.c
-index a4ae38d..3798d38 100644
+index 3257b1e..672f74a 100644
 --- a/commands.c
 +++ b/commands.c
-@@ -476,3 +476,35 @@ bool ct_select(arg_t _)
+@@ -477,3 +477,35 @@ bool ct_select(arg_t _)
  
  	return dirty;
  }
@@ -39,10 +51,10 @@ index a4ae38d..3798d38 100644
 +	return false;
 +}
 diff --git a/commands.h b/commands.h
-index 76b1330..82e2aef 100644
+index 4e694f0..10b5008 100644
 --- a/commands.h
 +++ b/commands.h
-@@ -22,6 +22,7 @@ bool cg_toggle_fullscreen(arg_t);
+@@ -23,6 +23,7 @@ bool cg_toggle_fullscreen(arg_t);
  bool cg_toggle_image_mark(arg_t);
  bool cg_unmark_all(arg_t);
  bool cg_zoom(arg_t);
@@ -50,7 +62,7 @@ index 76b1330..82e2aef 100644
  /* image mode */
  bool ci_alternate(arg_t);
  bool ci_cursor_navigate(arg_t);
-@@ -67,6 +68,7 @@ bool ct_select(arg_t);
+@@ -69,6 +70,7 @@ bool ct_select(arg_t);
  #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
  #define g_unmark_all { cg_unmark_all, MODE_ALL }
  #define g_zoom { cg_zoom, MODE_ALL }
@@ -59,10 +71,10 @@ index 76b1330..82e2aef 100644
  /* image mode */
  #define i_alternate { ci_alternate, MODE_IMAGE }
 diff --git a/config.def.h b/config.def.h
-index a0935f6..610b79c 100644
+index ead1509..1d4d0f4 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -98,6 +98,7 @@ static const keymap_t keys[] = {
+@@ -107,6 +107,7 @@ static const keymap_t keys[] = {
  	{ ControlMask,  XK_x,             g_prefix_external,    None },
  	{ 0,            XK_g,             g_first,              None },
  	{ 0,            XK_G,             g_n_or_last,          None },
@@ -71,14 +83,17 @@ index a0935f6..610b79c 100644
  	{ 0,            XK_D,             g_remove_image,       None },
  	{ ControlMask,  XK_h,             g_scroll_screen,      DIR_LEFT },
 diff --git a/main.c b/main.c
-index eed945c..04ceb9e 100644
+index 6ca2f11..9dba4c2 100644
 --- a/main.c
 +++ b/main.c
-@@ -863,6 +863,7 @@ int main(int argc, char *argv[])
- 	setup_signal(SIGCHLD, SIG_DFL, SA_RESTART|SA_NOCLDSTOP|SA_NOCLDWAIT);
+@@ -901,6 +901,7 @@ int main(int argc, char *argv[])
+ 	setup_signal(SIGCHLD, SIG_DFL, SA_RESTART | SA_NOCLDSTOP | SA_NOCLDWAIT);
  	setup_signal(SIGPIPE, SIG_IGN, 0);
  
 +	srand(time(NULL));
  	setlocale(LC_COLLATE, "");
  
  	parse_options(argc, argv);
+-- 
+2.46.2
+
