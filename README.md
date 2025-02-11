@@ -29,7 +29,6 @@ merge conflicts or broken functionality on upgrade.
 | [random-image](patches/random-image) | Switch to a random image |
 | [toggle-winbg](patches/toggle-winbg) | Keybinding to toggle the window background color |
 | [zoom-per-image](patches/zoom-per-image) | Remember what the zoom for image was |
-| [cache-whitelist](patches/cache-whitelist) | Write thumbnail cache only on whitelisted directories |
 | [dmenu-search](patches/dmenu-search) | Search the filelist using `dmenu` |
 | [color-invert](patches/color-invert) | Invert image colors |
 | [square-thumbs](patches/square-thumbs) | Toggleable square thumbnails |

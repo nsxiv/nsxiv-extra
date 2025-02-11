@@ -1,8 +1,6 @@
 # cache-whitelist
 
-This makes it so that nsxiv writes thumbnail caches *only* on directories which
-have been whitelisted.
+This patch was incorporated into mainline nsxiv at [commit 0620d47][commit] and
+thus has been removed from here.
 
-## Authors
-
-* NRK \<nrk at disroot dot org>
+[commit]: https://codeberg.org/nsxiv/nsxiv/commit/0620d473c2df34d02137fb22c23fb0f166b0e1a1
