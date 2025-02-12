@@ -15,7 +15,6 @@ with some of the basics first. See the manual pages [gittutorial][] and
 [gittutorial]: https://www.man7.org/linux/man-pages/man7/gittutorial.7.html
 [giteveryday]: https://www.man7.org/linux/man-pages/man7/giteveryday.7.html
 
-
 ## Hacking
 
 The main method of customization is via editing _config.h_, a plain
@@ -74,47 +73,55 @@ source; but, the above method of writing custom functions for `config.h` is
 preferred as it can enable better compatibility between patches or with future
 versions of nsxiv, and requires less maintenance by the user.
 
+### Example of applying a patch
 
-### Minimal Working Example
+Clone the `nsxiv` and `nsxiv-extra` repositories:
 
-Clone the nsxiv and nsxiv-extra repositories
 ```bash
-git clone https://codeberg.org/nsxiv/nsxiv
-git clone https://codeberg.org/nsxiv/nsxiv-extra/
+git clone https://codeberg.org/nsxiv/nsxiv.git
+git clone https://codeberg.org/nsxiv/nsxiv-extra.git
 ```
 
-Create a new branch
+Create a new branch (optional).
+
 ```bash
 cd nsxiv \
   && git checkout -b my_branch
 ```
 
-Install a patch compatible with newest nsxiv version (optional).
-For example the [random-image](https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/patches/random-image).
+Optionally, you can symlink `config.h` to `config.def.h` so that it's tracked by
+git and kept in sync.
+
+```bash
+ln -s config.def.h config.h
+```
+
+Apply a patch compatible with newest `nsxiv` version.
+As an example we'll use the [random-image](patches/random-image) patch.
+
+```bash
+git apply ../nsxiv-extra/patches/random-image/random-image-v33.patch
+git commit -am "apply patch random-image"
+```
+
+For `.patch` files, it's better to use `git am` as it will preserve the commit
+message, author details etc.
+
 ```bash
 git am ../nsxiv-extra/patches/random-image/random-image-v33.patch
 ```
 
-Customize settings (optional)
-```bash
-config_file="config.h"
-make "$config_file" # generate it. Alternative: cp -v config.def.h "$config_file"
-# Swap default foreground and background colors
-sed -i 's/white/TEMPCOLOR/g; s/black/white/g; s/TEMPCOLOR/black/g' "$config_file"
-```
+Now compile and run nsxiv.
+If the patch was applied correctly, then pressing `Ctrl+R` should take you to a
+random image.
 
-Compile && install. *nsxiv* README already has [this covered](https://codeberg.org/nsxiv/nsxiv#building)
 ```bash
 make
-sudo make install
+./nsxiv ~/pictures
 ```
 
-To apply other changes/patches first uninstall it
-```bash
-sudo make uninstall
-make clean
-```
-
+If you are happy with the changes, you can now merge your test branch into your
+master branch.
 
 ## Making your config forward compatible
 
