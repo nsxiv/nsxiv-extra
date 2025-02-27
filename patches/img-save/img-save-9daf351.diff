@@ -1,0 +1,166 @@
+diff --git a/commands.c b/commands.c
+index 3257b1e..abffd73 100644
+--- a/commands.c
++++ b/commands.c
+@@ -376,6 +376,12 @@ bool ci_rotate(arg_t degree)
+ 	return true;
+ }
+ 
++bool ci_save(arg_t unused)
++{
++	img_save(&img);
++	return true;
++}
++
+ bool ci_flip(arg_t dir)
+ {
+ 	img_flip(&img, dir);
+diff --git a/commands.h b/commands.h
+index 4e694f0..22cf7e5 100644
+--- a/commands.h
++++ b/commands.h
+@@ -32,6 +32,7 @@ bool ci_flip(arg_t);
+ bool ci_navigate(arg_t);
+ bool ci_navigate_frame(arg_t);
+ bool ci_rotate(arg_t);
++bool ci_save(arg_t);
+ bool ci_scroll(arg_t);
+ bool ci_scroll_to_center(arg_t);
+ bool ci_scroll_to_edge(arg_t);
+@@ -79,6 +80,7 @@ bool ct_select(arg_t);
+ #define i_navigate { ci_navigate, MODE_IMAGE }
+ #define i_navigate_frame { ci_navigate_frame, MODE_IMAGE }
+ #define i_rotate { ci_rotate, MODE_IMAGE }
++#define i_save { ci_save, MODE_IMAGE }
+ #define i_scroll { ci_scroll, MODE_IMAGE }
+ #define i_scroll_to_center { ci_scroll_to_center, MODE_IMAGE }
+ #define i_scroll_to_edge { ci_scroll_to_edge, MODE_IMAGE }
+diff --git a/image.c b/image.c
+index 50d792f..7c7ae7e 100644
+--- a/image.c
++++ b/image.c
+@@ -28,6 +28,7 @@
+ #include <string.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
++#include <libgen.h>
+ 
+ #if HAVE_LIBEXIF
+ #include <libexif/exif-data.h>
+@@ -40,6 +41,9 @@ enum { DEF_ANIM_DELAY = 75 };
+ #define ZOOM_MIN (zoom_levels[0] / 100)
+ #define ZOOM_MAX (zoom_levels[ARRLEN(zoom_levels) - 1] / 100)
+ 
++Imlib_Image img_now = NULL;
++void clone_rendered_img(void);
++
+ static int calc_cache_size(void)
+ {
+ 	long cache, pages = -1, page_size = -1;
+@@ -512,15 +516,29 @@ void img_render(img_t *img)
+ 		imlib_blend_image_onto_image(img->im, 0, sx, sy, sw, sh, 0, 0, dw, dh);
+ 		imlib_context_set_color_modifier(NULL);
+ 		imlib_render_image_on_drawable(dx, dy);
++		clone_rendered_img();
+ 		imlib_free_image();
+ 		imlib_context_set_color_modifier(img->cmod);
+ 	} else {
+ fallback:
+ 		imlib_render_image_part_on_drawable_at_size(sx, sy, sw, sh, dx, dy, dw, dh);
++		clone_rendered_img();
+ 	}
+ 	img->dirty = false;
+ }
+ 
++void clone_rendered_img(void) {
++	Imlib_Image aux = imlib_context_get_image();
++	if (img_now) {
++		imlib_context_set_image(img_now);
++		imlib_free_image();
++		imlib_context_set_image(aux);
++	}
++	if ((img_now = imlib_clone_image()) == NULL) {
++		error(EXIT_FAILURE, 0, "Failed to clone image.\n");
++	}
++}
++
+ bool img_fit_win(img_t *img, scalemode_t sm)
+ {
+ 	float oz;
+@@ -688,6 +706,64 @@ void img_rotate(img_t *img, degree_t d)
+ 	img->dirty = true;
+ }
+ 
++void img_save(img_t *img)
++{
++	Imlib_Load_Error err;
++
++	char buffer[PATH_MAX];
++
++    char *basename;
++	char *extension;
++	char *name;
++	int n;
++
++	if ((name = strdup(files[fileidx].name)) == NULL) {
++		error(EXIT_FAILURE, 0, "Error duplicating %s: %s.\n",
++				               files[fileidx].name, strerror(errno));
++	}
++
++    if ((basename = strrchr(name, '/')) == NULL)
++		basename = name;
++	if (*basename == '/')
++		basename += 1;
++	if (*basename == '.')
++		basename += 1;
++
++	if ((extension = strrchr(basename, '.')))
++		*extension = '\0';
++
++	if (img_now == NULL) {
++		error(EXIT_FAILURE, 0, "Current image should not be NULL.");
++	}
++	imlib_context_set_image(img_now);
++
++	if (imlib_image_has_alpha()) {
++		imlib_image_set_format("png");
++		extension = "png";
++	} else {
++		imlib_image_set_format("jpg");
++		imlib_image_attach_data_value("quality", NULL, 92, NULL);
++		extension = "jpg";
++	}
++
++	n = snprintf(buffer, sizeof(buffer), "%s_nsxiv.%s", name, extension);
++	if (n >= sizeof(buffer)) {
++		error(0, 0,
++			  "File path \"%s\" is too long. The image will not be saved.");
++		free(name);
++		return;
++	}
++
++	free(name);
++
++	imlib_save_image_with_error_return(buffer, &err);
++	if (err) {
++		error(0, 0, "Error saving image %s: %d\n", buffer, err);
++		return;
++	}
++}
++
++
+ void img_flip(img_t *img, flipdir_t d)
+ {
+ 	unsigned int i;
+diff --git a/nsxiv.h b/nsxiv.h
+index 3e30c80..1e98488 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -229,6 +229,7 @@ bool img_pan(img_t*, direction_t, int);
+ bool img_pan_center(img_t*);
+ bool img_pan_edge(img_t*, direction_t);
+ void img_rotate(img_t*, degree_t);
++void img_save(img_t*);
+ void img_flip(img_t*, flipdir_t);
+ void img_toggle_antialias(img_t*);
+ void img_update_color_modifiers(img_t*);
