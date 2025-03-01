@@ -32,6 +32,7 @@ merge conflicts or broken functionality on upgrade.
 | [dmenu-search](patches/dmenu-search) | Search the filelist using `dmenu` |
 | [color-invert](patches/color-invert) | Invert image colors |
 | [square-thumbs](patches/square-thumbs) | Toggleable square thumbnails |
+| [img-save](patches/img-save) | Save the currently rendered image to disk |
 
 For patch submissions please use the following format:
 
