@@ -36,116 +36,99 @@ index 4e694f0..22cf7e5 100644
  #define i_scroll_to_center { ci_scroll_to_center, MODE_IMAGE }
  #define i_scroll_to_edge { ci_scroll_to_edge, MODE_IMAGE }
 diff --git a/image.c b/image.c
-index 50d792f..7c7ae7e 100644
+index 50d792f..e70c7b6 100644
 --- a/image.c
 +++ b/image.c
-@@ -28,6 +28,7 @@
- #include <string.h>
- #include <sys/stat.h>
- #include <unistd.h>
-+#include <libgen.h>
- 
- #if HAVE_LIBEXIF
- #include <libexif/exif-data.h>
-@@ -40,6 +41,9 @@ enum { DEF_ANIM_DELAY = 75 };
+@@ -40,6 +40,8 @@ enum { DEF_ANIM_DELAY = 75 };
  #define ZOOM_MIN (zoom_levels[0] / 100)
  #define ZOOM_MAX (zoom_levels[ARRLEN(zoom_levels) - 1] / 100)
  
 +Imlib_Image img_now = NULL;
-+void clone_rendered_img(void);
 +
  static int calc_cache_size(void)
  {
  	long cache, pages = -1, page_size = -1;
-@@ -512,15 +516,29 @@ void img_render(img_t *img)
- 		imlib_blend_image_onto_image(img->im, 0, sx, sy, sw, sh, 0, 0, dw, dh);
- 		imlib_context_set_color_modifier(NULL);
- 		imlib_render_image_on_drawable(dx, dy);
-+		clone_rendered_img();
- 		imlib_free_image();
- 		imlib_context_set_color_modifier(img->cmod);
- 	} else {
- fallback:
- 		imlib_render_image_part_on_drawable_at_size(sx, sy, sw, sh, dx, dy, dw, dh);
-+		clone_rendered_img();
+@@ -425,6 +427,18 @@ static bool img_fit(img_t *img)
  	}
- 	img->dirty = false;
  }
  
-+void clone_rendered_img(void) {
++static void img_clone_rendered(void)
++{
 +	Imlib_Image aux = imlib_context_get_image();
 +	if (img_now) {
 +		imlib_context_set_image(img_now);
 +		imlib_free_image();
 +		imlib_context_set_image(aux);
 +	}
-+	if ((img_now = imlib_clone_image()) == NULL) {
-+		error(EXIT_FAILURE, 0, "Failed to clone image.\n");
-+	}
++	if ((img_now = imlib_clone_image()) == NULL)
++		error(EXIT_FAILURE, 0, "Failed to clone image");
 +}
 +
- bool img_fit_win(img_t *img, scalemode_t sm)
+ void img_render(img_t *img)
  {
- 	float oz;
-@@ -688,6 +706,64 @@ void img_rotate(img_t *img, degree_t d)
+ 	win_t *win;
+@@ -512,11 +526,13 @@ void img_render(img_t *img)
+ 		imlib_blend_image_onto_image(img->im, 0, sx, sy, sw, sh, 0, 0, dw, dh);
+ 		imlib_context_set_color_modifier(NULL);
+ 		imlib_render_image_on_drawable(dx, dy);
++		img_clone_rendered();
+ 		imlib_free_image();
+ 		imlib_context_set_color_modifier(img->cmod);
+ 	} else {
+ fallback:
+ 		imlib_render_image_part_on_drawable_at_size(sx, sy, sw, sh, dx, dy, dw, dh);
++		img_clone_rendered();
+ 	}
+ 	img->dirty = false;
+ }
+@@ -688,6 +704,53 @@ void img_rotate(img_t *img, degree_t d)
  	img->dirty = true;
  }
  
 +void img_save(img_t *img)
 +{
 +	Imlib_Load_Error err;
-+
-+	char buffer[PATH_MAX];
-+
-+    char *basename;
-+	char *extension;
-+	char *name;
++	char outpath[PATH_MAX];
++	const char *name, *basename, *extension;
++	int name_len;
 +	int n;
 +
-+	if ((name = strdup(files[fileidx].name)) == NULL) {
-+		error(EXIT_FAILURE, 0, "Error duplicating %s: %s.\n",
-+				               files[fileidx].name, strerror(errno));
-+	}
-+
-+    if ((basename = strrchr(name, '/')) == NULL)
++	name = files[fileidx].name;
++	if ((basename = strrchr(name, '/')) == NULL)
 +		basename = name;
 +	if (*basename == '/')
 +		basename += 1;
-+	if (*basename == '.')
++	if (*basename == '.') /* don't count dotfiles as extension */
 +		basename += 1;
 +
-+	if ((extension = strrchr(basename, '.')))
-+		*extension = '\0';
++	if ((extension = strrchr(basename, '.')) != NULL && extension[1] != '\0')
++		name_len = strlen(name) - strlen(extension);
++	else
++		name_len = strlen(name);
 +
-+	if (img_now == NULL) {
++	if (img_now == NULL)
 +		error(EXIT_FAILURE, 0, "Current image should not be NULL.");
-+	}
 +	imlib_context_set_image(img_now);
 +
-+	if (imlib_image_has_alpha()) {
-+		imlib_image_set_format("png");
++	if (imlib_image_has_alpha()) { /* FIXME: doesn't work */
 +		extension = "png";
++		imlib_image_set_format(extension);
++		imlib_image_attach_data_value("compression", NULL, 8, NULL);
 +	} else {
-+		imlib_image_set_format("jpg");
-+		imlib_image_attach_data_value("quality", NULL, 92, NULL);
 +		extension = "jpg";
++		imlib_image_set_format(extension);
++		imlib_image_attach_data_value("quality", NULL, 96, NULL);
 +	}
 +
-+	n = snprintf(buffer, sizeof(buffer), "%s_nsxiv.%s", name, extension);
-+	if (n >= sizeof(buffer)) {
-+		error(0, 0,
-+			  "File path \"%s\" is too long. The image will not be saved.");
-+		free(name);
++	n = snprintf(outpath, sizeof(outpath), "%.*s_nsxiv.%s", name_len, name, extension);
++	if ((size_t)n >= sizeof(outpath)) {
++		error(0, 0, "File path \"%s\" is too long. The image will not be saved.");
 +		return;
 +	}
 +
-+	free(name);
-+
-+	imlib_save_image_with_error_return(buffer, &err);
-+	if (err) {
-+		error(0, 0, "Error saving image %s: %d\n", buffer, err);
-+		return;
-+	}
++	imlib_save_image_with_error_return(outpath, &err);
++	if (err)
++		error(0, 0, "Error saving image %s: %d", outpath, err);
 +}
 +
 +
