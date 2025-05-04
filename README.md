@@ -33,6 +33,7 @@ merge conflicts or broken functionality on upgrade.
 | [color-invert](patches/color-invert) | Invert image colors |
 | [square-thumbs](patches/square-thumbs) | Toggleable square thumbnails |
 | [img-save](patches/img-save) | Save the currently rendered image to disk |
+| [import-marked](patches/import-marked) | Import list of files to mark at startup |
 
 For patch submissions please use the following format:
 

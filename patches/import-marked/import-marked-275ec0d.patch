@@ -1,0 +1,119 @@
+From 7cf821ae9f490487af9551d01171e6065b85b162 Mon Sep 17 00:00:00 2001
+From: NRK <nrk@disroot.org>
+Date: Thu, 27 Mar 2025 18:49:14 +0000
+Subject: [PATCH] patch: add --import-marked
+
+this accepts a filename, which contains newline seperated list
+of files that will be marked.
+---
+ main.c    | 33 +++++++++++++++++++++++++++++++++
+ nsxiv.h   |  1 +
+ options.c |  8 +++++++-
+ 3 files changed, 41 insertions(+), 1 deletion(-)
+
+diff --git a/main.c b/main.c
+index 5708264..0827f8c 100644
+--- a/main.c
++++ b/main.c
+@@ -122,6 +122,14 @@ static bool xgetline(char **lineptr, size_t *n)
+ 	return len > 0;
+ }
+ 
++static bool xgetline2(char **lineptr, size_t *n, FILE *stream)
++{
++	ssize_t len = getdelim(lineptr, n, '\n', stream);
++	if (len > 0 && (*lineptr)[len - 1] == '\n')
++		(*lineptr)[len - 1] = '\0';
++	return len > 0;
++}
++
+ static int fncmp(const void *a, const void *b)
+ {
+ 	return strcoll(((fileinfo_t *)a)->name, ((fileinfo_t *)b)->name);
+@@ -956,6 +964,31 @@ int main(int argc, char *argv[])
+ 		assert(0 && "unreachable");
+ 	}
+ 
++	if (options->importmarked_file != NULL) {
++		char *filename = NULL;
++		FILE *f = fopen(options->importmarked_file, "rb");
++		if (f == NULL)
++			error(EXIT_FAILURE, errno, "Failed to open file: %s", options->importmarked_file);
++		while (xgetline2(&filename, &n, f)) {
++			for (i = 0; i < filecnt; ++i) {
++				if (STREQ(filename, files[i].name) ||
++				    STREQ(filename, files[i].path))
++				{
++					bool is_marked = files[i].flags & FF_MARK;
++					files[i].flags |= FF_MARK;
++					markcnt += !is_marked;
++					break;
++				}
++			}
++			if (i == filecnt) {
++				error(0, 0, "File specified by --import-marked not found: %s",
++				      filename);
++			}
++		}
++		free(filename);
++		fclose(f);
++	}
++
+ 	win_init(&win);
+ 	img_init(&img, &win);
+ 	arl_init(&arl);
+diff --git a/nsxiv.h b/nsxiv.h
+index 1711c26..4886fd0 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -247,6 +247,7 @@ struct opt {
+ 	bool recursive;
+ 	int filecnt;
+ 	int startnum;
++	char *importmarked_file;
+ 
+ 	/* image: */
+ 	scalemode_t scalemode;
+diff --git a/options.c b/options.c
+index bb823f9..ca590f5 100644
+--- a/options.c
++++ b/options.c
+@@ -86,7 +86,8 @@ void parse_options(int argc, char **argv)
+ 		OPT_CLASS,
+ 		OPT_CA,
+ 		OPT_CD,
+-		OPT_UC
++		OPT_UC,
++		OPT_IMPORT_MARKED
+ 	};
+ 	static const struct optparse_long longopts[] = {
+ 		{ "framerate",      'A',     OPTPARSE_REQUIRED },
+@@ -121,6 +122,7 @@ void parse_options(int argc, char **argv)
+ 		{ "cache-allow",   OPT_CA,   OPTPARSE_REQUIRED },
+ 		{ "cache-deny",    OPT_CD,   OPTPARSE_REQUIRED },
+ 		{ "update-cache",  OPT_UC,   OPTPARSE_NONE },
++		{ "import-marked", OPT_IMPORT_MARKED,  OPTPARSE_REQUIRED },
+ 		{ 0 }, /* end */
+ 	};
+ 
+@@ -137,6 +139,7 @@ void parse_options(int argc, char **argv)
+ 	_options.using_null = false;
+ 	_options.recursive = false;
+ 	_options.startnum = 0;
++	_options.importmarked_file = NULL;
+ 
+ 	_options.scalemode = SCALE_DOWN;
+ 	_options.zoom = 1.0;
+@@ -289,6 +292,9 @@ void parse_options(int argc, char **argv)
+ 		case OPT_UC:
+ 			_options.update_cache = true;
+ 			break;
++		case OPT_IMPORT_MARKED:
++			_options.importmarked_file = op.optarg;
++			break;
+ 		}
+ 	}
+ 
+-- 
+2.48.1
+
