@@ -1,0 +1,95 @@
+From c37eeeeb606bea8bd683760a9feeae9d7468b25c Mon Sep 17 00:00:00 2001
+From: NRK <nrk@disroot.org>
+Date: Fri, 17 Sep 2021 04:04:15 +0600
+Subject: [PATCH] new flag -O for dmenu mode
+
+---
+ commands.c | 4 ++++
+ main.c     | 5 +++++
+ nsxiv.h    | 1 +
+ options.c  | 5 +++++
+ 4 files changed, 15 insertions(+)
+
+diff --git a/commands.c b/commands.c
+index 3257b1e..fe322fc 100644
+--- a/commands.c
++++ b/commands.c
+@@ -178,6 +178,8 @@ bool cg_reverse_marks(arg_t _)
+ {
+ 	int i;
+ 
++	if (options->dmenu)
++		return false;
+ 	for (i = 0; i < filecnt; i++) {
+ 		files[i].flags ^= FF_MARK;
+ 		markcnt += files[i].flags & FF_MARK ? 1 : -1;
+@@ -201,6 +203,8 @@ bool cg_unmark_all(arg_t _)
+ {
+ 	int i;
+ 
++	if (options->dmenu)
++		return false;
+ 	for (i = 0; i < filecnt; i++)
+ 		files[i].flags &= ~FF_MARK;
+ 	markcnt = 0;
+diff --git a/main.c b/main.c
+index 5708264..654593a 100644
+--- a/main.c
++++ b/main.c
+@@ -416,6 +416,11 @@ void load_image(int new)
+ bool mark_image(int n, bool on)
+ {
+ 	markidx = n;
++	if (options->dmenu) {
++		on = true;
++		printf("%s\n", files[n].name);
++		fflush(stdout);
++	}
+ 	if (!!(files[n].flags & FF_MARK) != on) {
+ 		files[n].flags ^= FF_MARK;
+ 		markcnt += on ? 1 : -1;
+diff --git a/nsxiv.h b/nsxiv.h
+index 1711c26..99da0eb 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -242,6 +242,7 @@ struct opt {
+ 	/* file list: */
+ 	char **filenames;
+ 	bool from_stdin;
++	bool dmenu;
+ 	bool to_stdout;
+ 	bool using_null;
+ 	bool recursive;
+diff --git a/options.c b/options.c
+index bb823f9..97d3f74 100644
+--- a/options.c
++++ b/options.c
+@@ -103,6 +103,7 @@ void parse_options(int argc, char **argv)
+ 		{ "name",           'N',     OPTPARSE_REQUIRED },
+ 		{ "class",       OPT_CLASS,  OPTPARSE_REQUIRED },
+ 		{ "start-at",       'n',     OPTPARSE_REQUIRED },
++		{ NULL,             'O',     OPTPARSE_NONE },
+ 		{ "stdout",         'o',     OPTPARSE_NONE },
+ 		{ "private",        'p',     OPTPARSE_NONE },
+ 		{ "quiet",          'q',     OPTPARSE_NONE },
+@@ -133,6 +134,7 @@ void parse_options(int argc, char **argv)
+ 
+ 	options = &_options;
+ 	_options.from_stdin = false;
++	_options.dmenu = false;
+ 	_options.to_stdout = false;
+ 	_options.using_null = false;
+ 	_options.recursive = false;
+@@ -229,6 +231,9 @@ void parse_options(int argc, char **argv)
+ 		case 'N':
+ 			_options.res_name = op.optarg;
+ 			break;
++		case 'O':
++			_options.dmenu = true;
++			break;
+ 		case 'o':
+ 			_options.to_stdout = true;
+ 			break;
+-- 
+2.49.0
+
