@@ -1,0 +1,875 @@
+From 33e58eb2d91d886b75fb716b5a88df404494db65 Mon Sep 17 00:00:00 2001
+From: Boris Stepanov <boris.stepanov@protonmail.com>
+Date: Tue, 13 Jan 2026 06:46:43 +0000
+Subject: [PATCH] add scroll mode to join images vertically
+
+---
+ Makefile     |   4 +-
+ README.md    |   1 +
+ commands.c   |  41 +++++-
+ commands.h   |  13 ++
+ config.def.h |  26 ++++
+ etc/nsxiv.1  |  54 ++++++++
+ main.c       |  22 ++-
+ nsxiv.h      |  45 ++++++-
+ options.c    |  17 ++-
+ scroll.c     | 375 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 10 files changed, 592 insertions(+), 6 deletions(-)
+ create mode 100644 scroll.c
+
+diff --git a/Makefile b/Makefile
+index e94d546..edb1d21 100644
+--- a/Makefile
++++ b/Makefile
+@@ -19,7 +19,7 @@ nsxiv_ldlibs = -lImlib2 -lX11 \
+   $(LDLIBS)
+ 
+ objs = autoreload.o commands.o image.o main.o options.o \
+-  thumbs.o util.o window.o
++  scroll.o thumbs.o util.o window.o
+ 
+ .SUFFIXES:
+ .SUFFIXES: .c .o
+@@ -56,7 +56,7 @@ dump_cppflags:
+ 	@echo $(nsxiv_cppflags)
+ 
+ clean:
+-	rm -f *.o nsxiv version.h
++	rm -f *.o nsxiv version.h config.h
+ 
+ install-all: install install-desktop install-icon
+ 
+diff --git a/README.md b/README.md
+index 8e14763..d426822 100644
+--- a/README.md
++++ b/README.md
+@@ -35,6 +35,7 @@ Features
+ * Scriptability via `key-handler`
+ * Displaying image information in status bar via `image-info` & `thumb-info`
+ * Customizable window title via `win-title`
++* Scroll mode: vertically combined view of all images via `--scroll-mode`
+ 
+ 
+ Screenshots
+diff --git a/commands.c b/commands.c
+index 3257b1e..7d0b306 100644
+--- a/commands.c
++++ b/commands.c
+@@ -30,6 +30,7 @@
+ extern img_t img;
+ extern tns_t tns;
+ extern win_t win;
++extern scrl_t scrl;
+ 
+ static bool navigate_to(arg_t n)
+ {
+@@ -79,7 +80,14 @@ bool cg_switch_mode(arg_t _)
+ 		}
+ 		tns.dirty = true;
+ 		mode = MODE_THUMB;
+-	} else {
++	} else if (mode == MODE_THUMB) {
++		load_image(fileidx);
++		mode = MODE_IMAGE;
++	} else if (mode == MODE_SCROLL) {
++		/* switch from scroll mode to image mode */
++		int visible_idx = scrl_get_visible_idx(&scrl);
++		if (visible_idx >= 0 && visible_idx < filecnt)
++			fileidx = visible_idx;
+ 		load_image(fileidx);
+ 		mode = MODE_IMAGE;
+ 	}
+@@ -93,6 +101,8 @@ bool cg_toggle_fullscreen(arg_t _)
+ 	set_timeout(redraw, TO_REDRAW_RESIZE, false);
+ 	if (mode == MODE_IMAGE)
+ 		img.checkpan = img.dirty = true;
++	else if (mode == MODE_SCROLL)
++		scrl.dirty = true;
+ 	else
+ 		tns.dirty = true;
+ 	return false;
+@@ -103,6 +113,8 @@ bool cg_toggle_bar(arg_t _)
+ 	win_toggle_bar(&win);
+ 	if (mode == MODE_IMAGE)
+ 		img.checkpan = img.dirty = true;
++	else if (mode == MODE_SCROLL)
++		scrl.dirty = true;
+ 	else
+ 		tns.dirty = true;
+ 	if (win.bar.h > 0)
+@@ -477,3 +489,30 @@ bool ct_select(arg_t _)
+ 
+ 	return dirty;
+ }
++
++bool cs_scroll(arg_t dir)
++{
++	return scrl_scroll(&scrl, dir, prefix);
++}
++
++bool cs_scroll_screen(arg_t dir)
++{
++	return scrl_scroll(&scrl, dir, -1);
++}
++
++bool cs_zoom(arg_t d)
++{
++	return scrl_zoom(&scrl, d);
++}
++
++bool cs_first(arg_t _)
++{
++	int n = prefix != 0 ? prefix - 1 : 0;
++	return scrl_scroll_to(&scrl, n);
++}
++
++bool cs_n_or_last(arg_t _)
++{
++	int n = prefix != 0 && prefix - 1 < *scrl.cnt ? prefix - 1 : *scrl.cnt - 1;
++	return scrl_scroll_to(&scrl, n);
++}
+diff --git a/commands.h b/commands.h
+index 4e694f0..e6ff14f 100644
+--- a/commands.h
++++ b/commands.h
+@@ -46,6 +46,12 @@ bool ct_reload_all(arg_t);
+ bool ct_scroll(arg_t);
+ bool ct_drag_mark_image(arg_t);
+ bool ct_select(arg_t);
++/* scroll mode */
++bool cs_scroll(arg_t);
++bool cs_scroll_screen(arg_t);
++bool cs_zoom(arg_t);
++bool cs_first(arg_t);
++bool cs_n_or_last(arg_t);
+ 
+ #ifdef INCLUDE_MAPPINGS_CONFIG
+ /* global */
+@@ -95,5 +101,12 @@ bool ct_select(arg_t);
+ #define t_drag_mark_image { ct_drag_mark_image, MODE_THUMB }
+ #define t_select { ct_select, MODE_THUMB }
+ 
++/* scroll mode */
++#define s_scroll { cs_scroll, MODE_SCROLL }
++#define s_scroll_screen { cs_scroll_screen, MODE_SCROLL }
++#define s_zoom { cs_zoom, MODE_SCROLL }
++#define s_first { cs_first, MODE_SCROLL }
++#define s_n_or_last { cs_n_or_last, MODE_SCROLL }
++
+ #endif /* _MAPPINGS_CONFIG */
+ #endif /* COMMANDS_H */
+diff --git a/config.def.h b/config.def.h
+index ead1509..d7b7bf7 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -150,6 +150,23 @@ static const keymap_t keys[] = {
+ 	{ 0,            XK_space,         i_navigate,           +1 },
+ 	{ 0,            XK_p,             i_navigate,           -1 },
+ 	{ 0,            XK_p,             i_scroll_to_edge,     DIR_LEFT | DIR_UP },
++
++	{ 0,            XK_j,             s_scroll,             DIR_DOWN },
++	{ 0,            XK_Down,          s_scroll,             DIR_DOWN },
++	{ 0,            XK_k,             s_scroll,             DIR_UP },
++	{ 0,            XK_Up,            s_scroll,             DIR_UP },
++	{ 0,            XK_space,         s_scroll_screen,      DIR_DOWN },
++	{ 0,            XK_BackSpace,     s_scroll_screen,      DIR_UP },
++	{ ControlMask,  XK_j,             s_scroll_screen,      DIR_DOWN },
++	{ ControlMask,  XK_Down,          s_scroll_screen,      DIR_DOWN },
++	{ ControlMask,  XK_k,             s_scroll_screen,      DIR_UP },
++	{ ControlMask,  XK_Up,            s_scroll_screen,      DIR_UP },
++	{ 0,            XK_plus,          s_zoom,               +1 },
++	{ 0,            XK_KP_Add,        s_zoom,               +1 },
++	{ 0,            XK_minus,         s_zoom,               -1 },
++	{ 0,            XK_KP_Subtract,   s_zoom,               -1 },
++	{ 0,            XK_g,             s_first,              None },
++	{ 0,            XK_G,             s_n_or_last,          None },
+ 	{ 0,            XK_BackSpace,     i_navigate,           -1 },
+ 	{ 0,            XK_bracketright,  i_navigate,           +10 },
+ 	{ 0,            XK_bracketleft,   i_navigate,           -10 },
+@@ -209,6 +226,15 @@ static const button_t buttons_tns[] = {
+ 	{ ControlMask,  5,                g_scroll_screen,      DIR_DOWN },
+ };
+ 
++/* mouse button mappings for scroll mode: */
++static const button_t buttons_scrl[] = {
++	/* modifiers    button            function              argument */
++	{ 0,            4,                s_scroll,             DIR_UP },
++	{ 0,            5,                s_scroll,             DIR_DOWN },
++	{ ControlMask,  4,                s_zoom,               +1 },
++	{ ControlMask,  5,                s_zoom,               -1 },
++};
++
+ /* true means NAV_WIDTH is relative (33%), false means absolute (33 pixels) */
+ static const bool NAV_IS_REL = true;
+ /* width of navigation area, 0 disables cursor navigation, */
+diff --git a/etc/nsxiv.1 b/etc/nsxiv.1
+index ccc010a..ffb654b 100644
+--- a/etc/nsxiv.1
++++ b/etc/nsxiv.1
+@@ -156,6 +156,14 @@ only the final one takes effect.
+ Update the thumbnail cache (creating them if necessary) of the given arguments
+ and exit. Can be used along with
+ .BR "\-\-clean\-cache" .
++.TP
++.BI "\-\-scroll\-mode"
++Start in scroll mode, which merges images vertically in a single scroll.
++Images are scaled to match the widest image's width.
++.TP
++.BI "\-\-scroll\-cache\-size " N
++Set the number of images to cache ahead and behind the current view in scroll
++mode. Default is 5. Higher values use more memory but provide smoother scrolling.
+ .SH KEYBOARD COMMANDS
+ .SS General
+ The following keyboard commands are available in both image and thumbnail modes:
+@@ -427,6 +435,38 @@ Toggle visibility of alpha-channel, i.e. image transparency.
+ Toggle slideshow mode and/or set the delay between images to
+ .I count
+ seconds.
++.SS Scroll mode
++The following keyboard commands are only available in scroll mode:
++.TP
++.BR j ", " Down
++Scroll down 1/5 of window height or
++.I count
++pixels.
++.TP
++.BR k ", " Up
++Scroll up 1/5 of window height or
++.I count
++pixels.
++.TP
++.BR Space ", " Ctrl-j ", " Ctrl-Down
++Scroll down one screen height.
++.TP
++.BR Backspace ", " Ctrl-k ", " Ctrl-Up
++Scroll up one screen height.
++.TP
++.B +
++Zoom in.
++.TP
++.B \-
++Zoom out.
++.TP
++.BR g
++Scroll to the
++.I count
++image.
++.TP
++.BR G
++Scroll to the last image.
+ .SH MOUSE COMMANDS
+ .SS Thumbnail mode
+ The following mouse mappings are available in thumbnail mode:
+@@ -471,6 +511,20 @@ Zoom in.
+ .TP
+ .B Button5
+ Zoom out.
++.SS Scroll mode
++The following mouse mappings are available in scroll mode:
++.TP
++.B Button4
++Scroll up.
++.TP
++.B Button5
++Scroll down.
++.TP
++.B Ctrl-Button4
++Zoom in.
++.TP
++.B Ctrl-Button5
++Zoom out.
+ .SH CONFIGURATION
+ The following X resources are supported under "Nsxiv" (e.g.
+ .B Nsxiv.bar.font
+diff --git a/main.c b/main.c
+index 65c060c..ed59461 100644
+--- a/main.c
++++ b/main.c
+@@ -63,6 +63,7 @@ arl_t arl;
+ img_t img;
+ tns_t tns;
+ win_t win;
++scrl_t scrl;
+ 
+ appmode_t mode;
+ fileinfo_t *files;
+@@ -111,6 +112,7 @@ static void cleanup(void)
+ 	img_close(&img, false);
+ 	arl_cleanup(&arl);
+ 	tns_free(&tns);
++	scrl_free(&scrl);
+ 	win_close(&win);
+ }
+ 
+@@ -482,6 +484,12 @@ static void update_info(void)
+ 		bar_put(r, "%s%0*d/%d", mark, fw, fileidx + 1, filecnt);
+ 		if (info.ft.err)
+ 			strncpy(l->buf, files[fileidx].name, l->size);
++	} else if (mode == MODE_SCROLL) {
++		int visible_idx = scrl_get_visible_idx(&scrl);
++		bar_put(r, "%3d%%" BAR_SEP, (int)(scrl.zoom * 100.0));
++		bar_put(r, "%0*d/%d", fw, visible_idx + 1, filecnt);
++		if (visible_idx >= 0 && visible_idx < filecnt)
++			strncpy(l->buf, files[visible_idx].name, l->size);
+ 	} else {
+ 		bar_put(r, "%s", mark);
+ 		if (img.ss.on) {
+@@ -539,6 +547,8 @@ void redraw(void)
+ 				t = MAX(t, img.multi.length);
+ 			set_timeout(slideshow, t, false);
+ 		}
++	} else if (mode == MODE_SCROLL) {
++		scrl_render(&scrl);
+ 	} else {
+ 		tns_render(&tns);
+ 	}
+@@ -566,6 +576,8 @@ void reset_cursor(void)
+ 				break;
+ 			}
+ 		}
++	} else if (mode == MODE_SCROLL) {
++		cursor = CURSOR_ARROW;
+ 	} else {
+ 		if (tns.loadnext < tns.end || tns.initnext < filecnt)
+ 			cursor = CURSOR_WATCH;
+@@ -767,6 +779,8 @@ static void on_buttonpress(const XButtonEvent *bev)
+ 		set_timeout(reset_cursor, TO_CURSOR_HIDE, true);
+ 		reset_cursor();
+ 		dirty = process_bindings(buttons_img, ARRLEN(buttons_img), bev->button, bev->state, 0);
++	} else if (mode == MODE_SCROLL) {
++		dirty = process_bindings(buttons_scrl, ARRLEN(buttons_scrl), bev->button, bev->state, 0);
+ 	} else { /* thumbnail mode */
+ 		dirty = process_bindings(buttons_tns, ARRLEN(buttons_tns), bev->button, bev->state, 0);
+ 	}
+@@ -863,6 +877,8 @@ static void run(void)
+ 				if (mode == MODE_IMAGE) {
+ 					img.dirty = true;
+ 					img.checkpan = true;
++				} else if (mode == MODE_SCROLL) {
++					scrl.dirty = true;
+ 				} else {
+ 					tns.dirty = true;
+ 				}
+@@ -988,7 +1004,11 @@ int main(int argc, char *argv[])
+ 	}
+ 	wintitle.fd = info.fd = -1;
+ 
+-	if (options->thumb_mode) {
++	if (options->scroll_mode) {
++		mode = MODE_SCROLL;
++		tns.thumbs = NULL;
++		scrl_init(&scrl, files, &filecnt, &win, options->scroll_cache_size);
++	} else if (options->thumb_mode) {
+ 		mode = MODE_THUMB;
+ 		tns_init(&tns, files, &filecnt, &fileidx, &win);
+ 		while (!tns_load(&tns, fileidx, false, false))
+diff --git a/nsxiv.h b/nsxiv.h
+index e0de301..296d453 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -51,7 +51,8 @@
+ typedef enum {
+ 	MODE_ALL,
+ 	MODE_IMAGE,
+-	MODE_THUMB
++	MODE_THUMB,
++	MODE_SCROLL
+ } appmode_t;
+ 
+ typedef enum {
+@@ -128,6 +129,7 @@ typedef struct img img_t;
+ typedef struct opt opt_t;
+ typedef struct tns tns_t;
+ typedef struct win win_t;
++typedef struct scrl scrl_t;
+ 
+ 
+ /* autoreload.c */
+@@ -277,6 +279,8 @@ struct opt {
+ 	bool clean_cache;
+ 	bool update_cache;
+ 	bool private_mode;
++	bool scroll_mode;
++	int scroll_cache_size;
+ };
+ 
+ extern const opt_t *options;
+@@ -341,6 +345,45 @@ bool tns_zoom(tns_t*, int);
+ int tns_translate(tns_t*, int, int);
+ 
+ 
++/* scroll.c */
++
++typedef struct {
++	Imlib_Image im;
++	int w;
++	int h;
++	int y_offset; /* y position in the combined image */
++} scrl_img_t;
++
++struct scrl {
++	fileinfo_t *files;
++	const int *cnt;
++	win_t *win;
++
++	scrl_img_t *imgs;  /* cached images */
++	int imgs_cnt;      /* number of allocated images */
++	int cache_start;   /* first cached file index */
++	int cache_end;     /* one past last cached file index */
++	int cache_size;    /* number of images to cache before/after */
++
++	int *y_offsets;    /* y offset of each image in the combined scroll */
++	int total_height;  /* total height of combined images */
++	int max_width;     /* maximum width among all images */
++
++	float scroll_y;    /* current scroll position */
++	float zoom;        /* zoom level */
++	bool dirty;        /* needs redraw */
++};
++
++void scrl_init(scrl_t*, fileinfo_t*, const int*, win_t*, int);
++CLEANUP void scrl_free(scrl_t*);
++void scrl_render(scrl_t*);
++bool scrl_scroll(scrl_t*, direction_t, int);
++bool scrl_scroll_to(scrl_t*, int);
++bool scrl_zoom(scrl_t*, int);
++bool scrl_zoom_to(scrl_t*, float);
++int scrl_get_visible_idx(scrl_t*);
++
++
+ /* util.c */
+ 
+ #include <dirent.h>
+diff --git a/options.c b/options.c
+index a6aba4f..840e4b3 100644
+--- a/options.c
++++ b/options.c
+@@ -88,7 +88,9 @@ void parse_options(int argc, char **argv)
+ 		OPT_CD,
+ 		OPT_UC,
+ 		OPT_HIDDEN,
+-		OPT_AF
++		OPT_AF,
++		OPT_SM,
++		OPT_SCS
+ 	};
+ 	static const struct optparse_long longopts[] = {
+ 		{ "framerate",      'A',     OPTPARSE_REQUIRED },
+@@ -127,6 +129,8 @@ void parse_options(int argc, char **argv)
+ 		{ "cache-allow",   OPT_CA,   OPTPARSE_REQUIRED },
+ 		{ "cache-deny",    OPT_CD,   OPTPARSE_REQUIRED },
+ 		{ "update-cache",  OPT_UC,   OPTPARSE_NONE },
++		{ "scroll-mode",   OPT_SM,   OPTPARSE_NONE },
++		{ "scroll-cache-size", OPT_SCS,  OPTPARSE_REQUIRED },
+ 		{ 0 }, /* end */
+ 	};
+ 
+@@ -168,6 +172,8 @@ void parse_options(int argc, char **argv)
+ 	_options.clean_cache = false;
+ 	_options.update_cache = false;
+ 	_options.private_mode = false;
++	_options.scroll_mode = false;
++	_options.scroll_cache_size = 5;
+ 
+ 	if (argc > 0) {
+ 		s = strrchr(argv[0], '/');
+@@ -303,6 +309,15 @@ void parse_options(int argc, char **argv)
+ 		case OPT_UC:
+ 			_options.update_cache = true;
+ 			break;
++		case OPT_SM:
++			_options.scroll_mode = true;
++			break;
++		case OPT_SCS:
++			n = strtol(op.optarg, &end, 0);
++			if (*end != '\0' || n < 1 || n > INT_MAX)
++				error(EXIT_FAILURE, 0, "Invalid scroll-cache-size: %s", op.optarg);
++			_options.scroll_cache_size = n;
++			break;
+ 		}
+ 	}
+ 
+diff --git a/scroll.c b/scroll.c
+new file mode 100644
+index 0000000..392dafe
+--- /dev/null
++++ b/scroll.c
+@@ -0,0 +1,375 @@
++/* Copyright 2021-2023 nsxiv contributors
++ *
++ * This file is a part of nsxiv.
++ *
++ * nsxiv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License,
++ * or (at your option) any later version.
++ *
++ * nsxiv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "nsxiv.h"
++#define INCLUDE_IMAGE_CONFIG
++#include "config.h"
++
++#include <stdlib.h>
++#include <string.h>
++
++#define SCRL_ZOOM_MIN (zoom_levels[0] / 100.0f)
++#define SCRL_ZOOM_MAX (zoom_levels[ARRLEN(zoom_levels) - 1] / 100.0f)
++
++static void scrl_load_image(scrl_t *scrl, int idx)
++{
++	Imlib_Image im;
++	scrl_img_t *simg;
++
++	if (idx < 0 || idx >= *scrl->cnt)
++		return;
++
++	simg = &scrl->imgs[idx];
++	if (simg->im != NULL)
++		return; /* already loaded */
++
++	im = img_open(&scrl->files[idx]);
++	if (im == NULL) {
++		simg->im = NULL;
++		simg->w = 0;
++		simg->h = 0;
++		return;
++	}
++
++	imlib_context_set_image(im);
++	simg->im = im;
++	simg->w = imlib_image_get_width();
++	simg->h = imlib_image_get_height();
++}
++
++static void scrl_unload_image(scrl_t *scrl, int idx)
++{
++	scrl_img_t *simg;
++
++	if (idx < 0 || idx >= *scrl->cnt)
++		return;
++
++	simg = &scrl->imgs[idx];
++	if (simg->im != NULL) {
++		imlib_context_set_image(simg->im);
++		imlib_free_image();
++		simg->im = NULL;
++	}
++}
++
++static void scrl_update_cache(scrl_t *scrl, int center_idx)
++{
++	int i, new_start, new_end;
++
++	new_start = MAX(0, center_idx - scrl->cache_size);
++	new_end = MIN(*scrl->cnt, center_idx + scrl->cache_size + 1);
++
++	/* unload images outside new cache range */
++	for (i = scrl->cache_start; i < scrl->cache_end; i++) {
++		if (i < new_start || i >= new_end)
++			scrl_unload_image(scrl, i);
++	}
++
++	/* load images in new cache range */
++	for (i = new_start; i < new_end; i++) {
++		scrl_load_image(scrl, i);
++	}
++
++	scrl->cache_start = new_start;
++	scrl->cache_end = new_end;
++}
++
++static void scrl_calc_layout(scrl_t *scrl)
++{
++	int i, y = 0, max_w = 0;
++
++	/* first pass: determine max width (scan all files for sizing) */
++	for (i = 0; i < *scrl->cnt; i++) {
++		if (scrl->imgs[i].w > max_w)
++			max_w = scrl->imgs[i].w;
++	}
++
++	/* if no images loaded yet, use window width as fallback */
++	if (max_w == 0)
++		max_w = scrl->win->w;
++
++	scrl->max_width = max_w;
++
++	/* second pass: calculate scaled heights and y offsets */
++	y = 0;
++	for (i = 0; i < *scrl->cnt; i++) {
++		scrl->y_offsets[i] = y;
++		if (scrl->imgs[i].w > 0 && scrl->imgs[i].h > 0) {
++			/* scale height proportionally to match max width */
++			float scale = (float)max_w / scrl->imgs[i].w;
++			int scaled_h = (int)(scrl->imgs[i].h * scale + 0.5f);
++			y += scaled_h;
++		}
++	}
++	scrl->total_height = y;
++}
++
++int scrl_get_visible_idx(scrl_t *scrl)
++{
++	int i, scroll_pos;
++
++	if (scrl->y_offsets == NULL || *scrl->cnt <= 0)
++		return 0;
++
++	scroll_pos = (int)(scrl->scroll_y / scrl->zoom);
++
++	for (i = 0; i < *scrl->cnt - 1; i++) {
++		if (scrl->y_offsets[i + 1] > scroll_pos)
++			return i;
++	}
++	return *scrl->cnt - 1;
++}
++
++void scrl_init(scrl_t *scrl, fileinfo_t *files, const int *cnt, win_t *win, int cache_size)
++{
++	memset(scrl, 0, sizeof(*scrl));
++
++	scrl->files = files;
++	scrl->cnt = cnt;
++	scrl->win = win;
++	scrl->cache_size = cache_size;
++	scrl->zoom = 1.0f;
++	scrl->scroll_y = 0;
++	scrl->dirty = true;
++
++	if (*cnt > 0) {
++		scrl->imgs_cnt = *cnt;
++		scrl->imgs = ecalloc(*cnt, sizeof(*scrl->imgs));
++		scrl->y_offsets = ecalloc(*cnt, sizeof(*scrl->y_offsets));
++
++		/* initial load: load first batch of images to determine layout */
++		scrl_update_cache(scrl, 0);
++		scrl_calc_layout(scrl);
++	}
++}
++
++CLEANUP void scrl_free(scrl_t *scrl)
++{
++	int i;
++
++	if (scrl->imgs != NULL) {
++		for (i = 0; i < scrl->imgs_cnt; i++) {
++			if (scrl->imgs[i].im != NULL) {
++				imlib_context_set_image(scrl->imgs[i].im);
++				imlib_free_image();
++			}
++		}
++		free(scrl->imgs);
++		scrl->imgs = NULL;
++	}
++	if (scrl->y_offsets != NULL) {
++		free(scrl->y_offsets);
++		scrl->y_offsets = NULL;
++	}
++	scrl->imgs_cnt = 0;
++}
++
++void scrl_render(scrl_t *scrl)
++{
++	win_t *win;
++	int i, visible_idx;
++	int view_y, view_h;
++	float scale;
++
++	if (!scrl->dirty || scrl->imgs == NULL)
++		return;
++
++	win = scrl->win;
++	win_clear(win);
++
++	/* update cache based on current scroll position */
++	visible_idx = scrl_get_visible_idx(scrl);
++	scrl_update_cache(scrl, visible_idx);
++	scrl_calc_layout(scrl);
++
++	/* view coordinates in source image space */
++	view_y = (int)(scrl->scroll_y / scrl->zoom);
++	view_h = (int)(win->h / scrl->zoom);
++
++	imlib_context_set_drawable(win->buf.pm);
++	imlib_context_set_anti_alias(options->anti_alias);
++
++	/* render visible images */
++	for (i = 0; i < *scrl->cnt; i++) {
++		scrl_img_t *simg = &scrl->imgs[i];
++		int img_y, img_h_scaled;
++		int sy, sh, dy, dh;
++
++		if (simg->im == NULL)
++			continue;
++
++		/* calculate scaled dimensions */
++		scale = (float)scrl->max_width / simg->w;
++		img_h_scaled = (int)(simg->h * scale + 0.5f);
++		img_y = scrl->y_offsets[i];
++
++		/* check if image is visible */
++		if (img_y + img_h_scaled <= view_y || img_y >= view_y + view_h)
++			continue;
++
++		/* calculate source rect (in original image coords) */
++		if (img_y < view_y) {
++			sy = (int)((view_y - img_y) / scale);
++			dy = 0;
++		} else {
++			sy = 0;
++			dy = (int)((img_y - view_y) * scrl->zoom);
++		}
++
++		if (img_y + img_h_scaled > view_y + view_h) {
++			sh = simg->h - sy - (int)((img_y + img_h_scaled - view_y - view_h) / scale);
++		} else {
++			sh = simg->h - sy;
++		}
++
++		if (sh <= 0)
++			continue;
++
++		dh = (int)(sh * scale * scrl->zoom);
++		if (dy + dh > (int)win->h)
++			dh = win->h - dy;
++
++		/* adjust dy for bar position */
++		if (win->bar.top)
++			dy += win->bar.h;
++
++		/* render the image scaled to fit width */
++		imlib_context_set_image(simg->im);
++
++		{
++			int dx, dw, sw;
++
++			/* calculate horizontal centering */
++			dw = (int)(scrl->max_width * scrl->zoom);
++			if (dw > (int)win->w)
++				dw = win->w;
++			dx = ((int)win->w - dw) / 2;
++			if (dx < 0)
++				dx = 0;
++
++			sw = simg->w;
++
++			imlib_render_image_part_on_drawable_at_size(
++				0, sy, sw, sh,
++				dx, dy, dw, dh
++			);
++		}
++	}
++
++	scrl->dirty = false;
++}
++
++bool scrl_scroll(scrl_t *scrl, direction_t dir, int d)
++{
++	float old_y = scrl->scroll_y;
++	float step;
++	float max_scroll;
++
++	/* d < 0: screen-wise, d = 0: 1/5 of screen, d > 0: pixels */
++	if (d > 0) {
++		step = d * scrl->zoom;
++	} else if (d < 0) {
++		step = scrl->win->h;
++	} else {
++		step = scrl->win->h / 5;
++	}
++
++	max_scroll = MAX(0, scrl->total_height * scrl->zoom - scrl->win->h);
++
++	switch (dir) {
++	case DIR_UP:
++		scrl->scroll_y = MAX(0, scrl->scroll_y - step);
++		break;
++	case DIR_DOWN:
++		scrl->scroll_y = MIN(max_scroll, scrl->scroll_y + step);
++		break;
++	default:
++		return false;
++	}
++
++	if (scrl->scroll_y != old_y) {
++		scrl->dirty = true;
++		return true;
++	}
++	return false;
++}
++
++bool scrl_scroll_to(scrl_t *scrl, int idx)
++{
++	float old_y = scrl->scroll_y;
++	float max_scroll;
++
++	if (idx < 0 || idx >= *scrl->cnt)
++		return false;
++
++	/* update cache around target to ensure y_offsets are accurate */
++	scrl_update_cache(scrl, idx);
++	scrl_calc_layout(scrl);
++
++	max_scroll = MAX(0, scrl->total_height * scrl->zoom - scrl->win->h);
++	scrl->scroll_y = MIN(max_scroll, scrl->y_offsets[idx] * scrl->zoom);
++
++	if (scrl->scroll_y != old_y) {
++		scrl->dirty = true;
++		return true;
++	}
++	return false;
++}
++
++bool scrl_zoom_to(scrl_t *scrl, float z)
++{
++	float old_center_y;
++
++	if (z < SCRL_ZOOM_MIN || z > SCRL_ZOOM_MAX)
++		return false;
++
++	if (scrl->zoom == z)
++		return false;
++
++	/* keep the center of the view in the same place */
++	old_center_y = (scrl->scroll_y + scrl->win->h / 2) / scrl->zoom;
++	scrl->zoom = z;
++	scrl->scroll_y = old_center_y * z - scrl->win->h / 2;
++
++	/* clamp scroll position */
++	{
++		float max_scroll;
++		if (scrl->scroll_y < 0)
++			scrl->scroll_y = 0;
++
++		max_scroll = MAX(0, scrl->total_height * scrl->zoom - scrl->win->h);
++		if (scrl->scroll_y > max_scroll)
++			scrl->scroll_y = max_scroll;
++	}
++
++	scrl->dirty = true;
++	return true;
++}
++
++bool scrl_zoom(scrl_t *scrl, int d)
++{
++	int i = d > 0 ? 0 : (int)ARRLEN(zoom_levels) - 1;
++
++	while (i >= 0 && i < (int)ARRLEN(zoom_levels) &&
++	       (d > 0 ? zoom_levels[i] / 100.0f <= scrl->zoom : zoom_levels[i] / 100.0f >= scrl->zoom))
++	{
++		i += d;
++	}
++	i = MIN(MAX(i, 0), (int)ARRLEN(zoom_levels) - 1);
++	return scrl_zoom_to(scrl, zoom_levels[i] / 100.0f);
++}
+-- 
+2.52.0
+

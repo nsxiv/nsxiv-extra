@@ -35,6 +35,7 @@ merge conflicts or broken functionality on upgrade.
 | [img-save](patches/img-save) | Save the currently rendered image to disk |
 | [import-marked](patches/import-marked) | Import list of files to mark at startup |
 | [multi-marks](patches/multi-marks) | Multiple marks for more granular `-o`|
+| [scroll-mode](patches/scroll-mode) | Open images in a single verticall scroll |
 
 For patch submissions please use the following format:
 
