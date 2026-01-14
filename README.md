@@ -34,6 +34,7 @@ merge conflicts or broken functionality on upgrade.
 | [square-thumbs](patches/square-thumbs) | Toggleable square thumbnails |
 | [img-save](patches/img-save) | Save the currently rendered image to disk |
 | [import-marked](patches/import-marked) | Import list of files to mark at startup |
+| [multi-marks](patches/multi-marks) | Multiple marks for more granular `-o`|
 
 For patch submissions please use the following format:
 

@@ -1,0 +1,515 @@
+From 470012b062956250f56df66222bb698df0c6a69e Mon Sep 17 00:00:00 2001
+From: Hugo Forrat <hugo.forrat@live.fr>
+Date: Wed, 5 Nov 2025 03:30:39 +0100
+Subject: [PATCH] add multi marks
+
+This patch adds an optional argument to the `-o` flag.
+If this argument is not given, the behaviour is the same as mainline nsxiv.
+
+Otherwise, the argument is treated as a comma separated list of the form:
+`file[:display]`. Pressing the `g_cycle_image_mark` keybinding (default:
+<kbd>m</kbd>), will then cycle through the marks of the list, showing the
+`display` part of the item instead of the `*` in the corner of the window.
+
+For example, the cycle for `-o'foo,bar,baz'` is `no mark -> foo -> bar -> baz
+-> no mark`.
+
+If the `display` part is omitted, then the file is shown. Finally, when
+exiting, the names of the marked images are not written to stdout, but instead
+to the file associated with their mark.
+
+Existing files are overwritten, unless the `--append` flag is supplied.
+
+This patch also adds the `g_last_image_mark` command (default keybinding
+<kbd>,</kbd>), which sets the mark of the current image to the mark of the last
+marked image.
+
+Signed-off-by: Hugo Forrat <hugo.forrat@live.fr>
+---
+ commands.c   | 59 +++++++++++++++++++++++++++++---
+ commands.h   |  4 +++
+ config.def.h |  3 +-
+ main.c       | 69 ++++++++++++++++++++++++++++++++++---
+ nsxiv.h      | 15 ++++++++
+ options.c    | 97 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ util.c       |  9 +++++
+ 7 files changed, 244 insertions(+), 12 deletions(-)
+
+diff --git a/commands.c b/commands.c
+index 3257b1e..9910b39 100644
+--- a/commands.c
++++ b/commands.c
+@@ -21,6 +21,8 @@
+ 
+ #include "commands.h"
+ 
++#include <errno.h>
++#include <fcntl.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -45,16 +47,53 @@ static bool navigate_to(arg_t n)
+ 	return false;
+ }
+ 
+-bool cg_quit(arg_t status)
++static void print_marks_to_stdout(void)
+ {
+-	unsigned int i;
++	unsigned int i = 0;
++	const char delim = options->using_null ? '\0' : '\n';
+ 
+-	if (options->to_stdout && markcnt > 0) {
++	for (i = 0; i < (unsigned int)filecnt; i++)
++		if (files[i].flags & FF_MARK)
++			printf("%s%c", files[i].name, delim);
++}
++
++static void print_multimarks(void)
++{
++	int fd = -1;
++	unsigned int i, mark;
++	const char delim = options->using_null ? '\0' : '\n';
++	const int flag = O_WRONLY | O_CREAT | (options->append ? O_APPEND : O_TRUNC);
++
++	for (mark = 0; mark < options->markslen; mark += 1) {
+ 		for (i = 0; i < (unsigned int)filecnt; i++) {
+-			if (files[i].flags & FF_MARK)
+-				printf("%s%c", files[i].name, options->using_null ? '\0' : '\n');
++			if ((files[i].flags & FF_MARK) && files[i].markidx == mark) {
++				if (fd < 0) {
++					fd = open(options->marks[mark].file, flag, 0644);
++					if (fd < 0)
++						error(EXIT_FAILURE, errno, NULL);
++				}
++
++				dprintf(fd, "%s%c", files[i].name, delim);
++			}
++		}
++
++		if (fd >= 0) {
++			if (close(fd))
++				error(EXIT_FAILURE, errno, NULL);
++			fd = -1;
+ 		}
+ 	}
++}
++
++bool cg_quit(arg_t status)
++{
++	if (options->to_stdout && markcnt > 0) {
++		if (options->marks)
++			print_multimarks();
++		else
++			print_marks_to_stdout();
++	}
++
+ 	exit(status);
+ 	return None; /* silence tcc warning */
+ }
+@@ -174,6 +213,16 @@ bool cg_toggle_image_mark(arg_t _)
+ 	return mark_image(fileidx, !(files[fileidx].flags & FF_MARK));
+ }
+ 
++bool cg_cycle_image_mark(arg_t _)
++{
++	return cycle_mark_image(fileidx);
++}
++
++bool cg_last_image_mark(arg_t _)
++{
++	return last_image_mark(fileidx);
++}
++
+ bool cg_reverse_marks(arg_t _)
+ {
+ 	int i;
+diff --git a/commands.h b/commands.h
+index 4e694f0..1cdaa17 100644
+--- a/commands.h
++++ b/commands.h
+@@ -21,6 +21,8 @@ bool cg_switch_mode(arg_t);
+ bool cg_toggle_bar(arg_t);
+ bool cg_toggle_fullscreen(arg_t);
+ bool cg_toggle_image_mark(arg_t);
++bool cg_cycle_image_mark(arg_t);
++bool cg_last_image_mark(arg_t);
+ bool cg_unmark_all(arg_t);
+ bool cg_zoom(arg_t);
+ /* image mode */
+@@ -67,6 +69,8 @@ bool ct_select(arg_t);
+ #define g_toggle_bar { cg_toggle_bar, MODE_ALL }
+ #define g_toggle_fullscreen { cg_toggle_fullscreen, MODE_ALL }
+ #define g_toggle_image_mark { cg_toggle_image_mark, MODE_ALL }
++#define g_cycle_image_mark { cg_cycle_image_mark, MODE_ALL }
++#define g_last_image_mark { cg_last_image_mark, MODE_ALL }
+ #define g_unmark_all { cg_unmark_all, MODE_ALL }
+ #define g_zoom { cg_zoom, MODE_ALL }
+ 
+diff --git a/config.def.h b/config.def.h
+index ead1509..f2587c2 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -121,7 +121,8 @@ static const keymap_t keys[] = {
+ 	{ 0,            XK_KP_Add,        g_zoom,               +1 },
+ 	{ 0,            XK_minus,         g_zoom,               -1 },
+ 	{ 0,            XK_KP_Subtract,   g_zoom,               -1 },
+-	{ 0,            XK_m,             g_toggle_image_mark,  None },
++	{ 0,            XK_m,             g_cycle_image_mark,   None },
++	{ 0,            XK_comma,         g_last_image_mark,    None },
+ 	{ 0,            XK_M,             g_mark_range,         None },
+ 	{ ControlMask,  XK_m,             g_reverse_marks,      None },
+ 	{ ControlMask,  XK_u,             g_unmark_all,         None },
+diff --git a/main.c b/main.c
+index 5708264..9feb311 100644
+--- a/main.c
++++ b/main.c
+@@ -112,6 +112,7 @@ static void cleanup(void)
+ 	arl_cleanup(&arl);
+ 	tns_free(&tns);
+ 	win_close(&win);
++	opt_free();
+ }
+ 
+ static bool xgetline(char **lineptr, size_t *n)
+@@ -150,6 +151,7 @@ static void check_add_file(const char *filename, bool given)
+ 
+ 	files[fileidx].name = estrdup(filename);
+ 	files[fileidx].path = path;
++	files[fileidx].markidx = 0;
+ 	if (given)
+ 		files[fileidx].flags |= FF_WARN;
+ 	fileidx++;
+@@ -426,6 +428,49 @@ bool mark_image(int n, bool on)
+ 	return false;
+ }
+ 
++bool cycle_mark_image(int n)
++{
++	if (!options->markslen)
++		return mark_image(n, !(files[n].flags & FF_MARK));
++
++	if (!(files[n].flags & FF_MARK))
++		return mark_image(n, true);
++
++	files[n].markidx += 1;
++	if (files[n].markidx == options->markslen) {
++		files[n].markidx = 0;
++		return mark_image(n, false);
++	}
++
++	markidx = n;
++	return true;
++}
++
++static int find_last_mark(int n)
++{
++	int i;
++
++	for (i = n - 1; i >= 0; i -= 1) {
++		if (files[i].flags & FF_MARK)
++			return files[i].markidx;
++	}
++
++	return -1;
++}
++
++bool last_image_mark(int n)
++{
++	bool dirty;
++	int last = find_last_mark(n);
++	if (last < 0)
++		return false;
++
++	dirty = last != files[n].markidx;
++	files[n].markidx = last;
++
++	return mark_image(n, true) || dirty;
++}
++
+ static void bar_put(win_bar_t *bar, const char *fmt, ...)
+ {
+ 	size_t len = bar->size - (bar->p - bar->buf), n;
+@@ -440,7 +485,6 @@ static void bar_put(win_bar_t *bar, const char *fmt, ...)
+ static void update_info(void)
+ {
+ 	unsigned int i, fn, fw;
+-	const char *mark;
+ 	win_bar_t *l = &win.bar.l, *r = &win.bar.r;
+ 
+ 	static struct {
+@@ -450,6 +494,12 @@ static void update_info(void)
+ 		appmode_t mode;
+ 	} prev;
+ 
++	struct {
++		const char *display;
++		const char *suffix;
++	} mark;
++	mark_t *marks = options->marks;
++
+ 	if (prev.fileidx != fileidx || prev.mode != mode ||
+ 	    (prev.filepath == NULL || !STREQ(prev.filepath, files[fileidx].path)))
+ 	{
+@@ -471,7 +521,18 @@ static void update_info(void)
+ 
+ 	for (fw = 0, i = filecnt; i > 0; fw++, i /= 10)
+ 		;
+-	mark = files[fileidx].flags & FF_MARK ? "* " : "";
++	if (files[fileidx].flags & FF_MARK) {
++		if (marks)
++			mark.display = marks[files[fileidx].markidx].display
++				? marks[files[fileidx].markidx].display
++				: marks[files[fileidx].markidx].file;
++		else
++			mark.display = "*";
++		mark.suffix = " ";
++	} else {
++		mark.display = "";
++		mark.suffix  = "";
++	}
+ 	l->p = l->buf;
+ 	r->p = r->buf;
+ 	if (mode == MODE_THUMB) {
+@@ -479,11 +540,11 @@ static void update_info(void)
+ 			bar_put(r, "Loading... %0*d | ", fw, tns.loadnext + 1);
+ 		else if (tns.initnext < filecnt)
+ 			bar_put(r, "Caching... %0*d | ", fw, tns.initnext + 1);
+-		bar_put(r, "%s%0*d/%d", mark, fw, fileidx + 1, filecnt);
++		bar_put(r, "%s%s%0*d/%d", mark.display, mark.suffix, fw, fileidx + 1, filecnt);
+ 		if (info.ft.err)
+ 			strncpy(l->buf, files[fileidx].name, l->size);
+ 	} else {
+-		bar_put(r, "%s", mark);
++		bar_put(r, "%s%s", mark.display, mark.suffix);
+ 		if (img.ss.on) {
+ 			if (img.ss.delay % 10 != 0)
+ 				bar_put(r, "%2.1fs" BAR_SEP, (float)img.ss.delay / 10);
+diff --git a/nsxiv.h b/nsxiv.h
+index 1711c26..393e652 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -108,8 +108,14 @@ typedef struct {
+ 	const char *name; /* as given by user */
+ 	const char *path; /* always absolute, result of realpath(3) */
+ 	fileflags_t flags;
++	unsigned int markidx;
+ } fileinfo_t;
+ 
++typedef struct {
++	char *file;
++	char *display;
++} mark_t;
++
+ /* timeouts in milliseconds: */
+ enum {
+ 	TO_AUTORELOAD    = 128,
+@@ -273,12 +279,18 @@ struct opt {
+ 	bool clean_cache;
+ 	bool update_cache;
+ 	bool private_mode;
++
++	/* multimarks: */
++	size_t markslen;
++	mark_t *marks;
++	bool append;
+ };
+ 
+ extern const opt_t *options;
+ 
+ void print_usage(FILE *stream);
+ void parse_options(int, char**);
++CLEANUP void opt_free(void);
+ 
+ 
+ /* thumbs.c */
+@@ -358,6 +370,7 @@ void* emalloc(size_t);
+ void* ecalloc(size_t, size_t);
+ void* erealloc(void*, size_t);
+ char* estrdup(const char*);
++char *estrndup(const char *, size_t);
+ void error(int, int, const char*, ...);
+ int r_opendir(r_dir_t*, const char*, bool);
+ int r_closedir(r_dir_t*);
+@@ -466,6 +479,8 @@ void close_info(void);
+ void open_info(void);
+ void load_image(int);
+ bool mark_image(int, bool);
++bool cycle_mark_image(int);
++bool last_image_mark(int);
+ int nav_button(void);
+ void handle_key_handler(bool);
+ 
+diff --git a/options.c b/options.c
+index bb823f9..6969d31 100644
+--- a/options.c
++++ b/options.c
+@@ -72,6 +72,88 @@ static bool parse_optional_no(const char *flag, const char *arg)
+ 	return arg == NULL;
+ }
+ 
++CLEANUP void opt_free(void)
++{
++	size_t i;
++	mark_t *mark;
++
++	if (!options->marks)
++		return;
++
++	for (i = 0; i < options->markslen; i += 1) {
++		mark = &(options->marks[i]);
++		free(mark->file);
++		free(mark->display);
++	}
++
++	free(options->marks);
++}
++
++static size_t countchr(const char *arg, const char c)
++{
++	size_t ret = 0;
++	arg = strchr(arg, c);
++	while (arg) {
++		ret++;
++		arg = strchr(arg + 1, c);
++	}
++	return ret;
++}
++
++static void parse_multimarks(char *arg, mark_t **marks, size_t *len)
++{
++	mark_t *mark;
++	char *comma, *colon;
++	size_t i = 0;
++
++	if (*marks)
++		opt_free();
++
++	*len = countchr(arg, ',') + 1;
++	*marks = ecalloc(*len, sizeof(mark_t));
++
++	comma = strchr(arg, ',');
++	colon = strchr(arg, ':');
++
++	while (comma) {
++		mark = &(*marks)[i];
++
++		if (colon && colon < comma) {
++			mark->file = estrndup(arg, colon - arg);
++			mark->display = estrndup(colon + 1, comma - (colon + 1));
++		} else {
++			mark->file = estrndup(arg, comma - arg);
++			mark->display = NULL;
++		}
++
++		if (!strlen(mark->file))
++			error(EXIT_FAILURE, 0, "-o: empty file in mark list");
++
++		if (mark->display && !strlen(mark->display))
++			error(EXIT_FAILURE, 0, "-o: empty display for mark \"%s\"", mark->file);
++
++		arg = comma + 1;
++		comma = strchr(arg, ',');
++		colon = strchr(arg, ':');
++		i += 1;
++	}
++
++	mark = &(*marks)[i];
++	if (colon) {
++		mark->file = estrndup(arg, colon - arg);
++		mark->display = estrdup(colon + 1);
++	} else {
++		mark->file = estrdup(arg);
++		mark->display = NULL;
++	}
++
++	if (!strlen(mark->file))
++		error(EXIT_FAILURE, 0, "-o: empty file in mark list");
++
++	if (mark->display && !strlen(mark->display))
++		error(EXIT_FAILURE, 0, "-o: empty display for mark \"%s\"", mark->file);
++}
++
+ void parse_options(int argc, char **argv)
+ {
+ 	enum {
+@@ -86,7 +168,8 @@ void parse_options(int argc, char **argv)
+ 		OPT_CLASS,
+ 		OPT_CA,
+ 		OPT_CD,
+-		OPT_UC
++		OPT_UC,
++		OPT_APP,
+ 	};
+ 	static const struct optparse_long longopts[] = {
+ 		{ "framerate",      'A',     OPTPARSE_REQUIRED },
+@@ -103,7 +186,7 @@ void parse_options(int argc, char **argv)
+ 		{ "name",           'N',     OPTPARSE_REQUIRED },
+ 		{ "class",       OPT_CLASS,  OPTPARSE_REQUIRED },
+ 		{ "start-at",       'n',     OPTPARSE_REQUIRED },
+-		{ "stdout",         'o',     OPTPARSE_NONE },
++		{ "stdout",         'o',     OPTPARSE_OPTIONAL },
+ 		{ "private",        'p',     OPTPARSE_NONE },
+ 		{ "quiet",          'q',     OPTPARSE_NONE },
+ 		{ "recursive",      'r',     OPTPARSE_NONE },
+@@ -121,6 +204,7 @@ void parse_options(int argc, char **argv)
+ 		{ "cache-allow",   OPT_CA,   OPTPARSE_REQUIRED },
+ 		{ "cache-deny",    OPT_CD,   OPTPARSE_REQUIRED },
+ 		{ "update-cache",  OPT_UC,   OPTPARSE_NONE },
++		{ "append",        OPT_APP,  OPTPARSE_NONE },
+ 		{ 0 }, /* end */
+ 	};
+ 
+@@ -161,6 +245,10 @@ void parse_options(int argc, char **argv)
+ 	_options.update_cache = false;
+ 	_options.private_mode = false;
+ 
++	_options.append = false;
++	_options.markslen = 0;
++	_options.marks = NULL;
++
+ 	if (argc > 0) {
+ 		s = strrchr(argv[0], '/');
+ 		progname = s != NULL && s[1] != '\0' ? s + 1 : argv[0];
+@@ -231,6 +319,8 @@ void parse_options(int argc, char **argv)
+ 			break;
+ 		case 'o':
+ 			_options.to_stdout = true;
++			if (op.optarg)
++				parse_multimarks(op.optarg, &_options.marks, &_options.markslen);
+ 			break;
+ 		case 'p':
+ 			_options.private_mode = true;
+@@ -289,6 +379,9 @@ void parse_options(int argc, char **argv)
+ 		case OPT_UC:
+ 			_options.update_cache = true;
+ 			break;
++		case OPT_APP:
++			_options.append = true;
++			break;
+ 		}
+ 	}
+ 
+diff --git a/util.c b/util.c
+index 836be09..9e59d65 100644
+--- a/util.c
++++ b/util.c
+@@ -67,6 +67,15 @@ char *estrdup(const char *s)
+ 	return memcpy(emalloc(n), s, n);
+ }
+ 
++char *estrndup(const char *s, size_t n)
++{
++	char *ret;
++	n = MIN(n, strlen(s));
++	ret = emalloc(n + 1);
++	ret[n] = '\0';
++	return memcpy(ret, s, n);
++}
++
+ void error(int eval, int err, const char *fmt, ...)
+ {
+ 	va_list ap;
+-- 
+2.52.0
+
