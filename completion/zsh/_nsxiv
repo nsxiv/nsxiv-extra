@@ -31,9 +31,12 @@ _arguments -S \
    "(-t --thumbnail)"{-t,--thumbnail}"[starts in thumbnail mode]" \
    "(-Z --zoom-100)"{-Z,--zoom-100}"[same as \`-z 100\`]" \
    "(-0 --null)"{-0,--null}"[NULL separated file list for: -o, -i and key-handler]" \
+   "(-H --hidden)"{-H,--hidden}"[include hidden files and directories]" \
    "(--anti-alias)--anti-alias[enables anti-aliasing, give \`no\` to disable it]" \
    "(--alpha-layer)--alpha-layer[enables checkerboard background, give \`no\` to disable it]" \
    "(--cache-allow)--cache-allow[list of directories to whitelist for thumbnail caching]" \
    "(--cache-deny)--cache-deny[list of directories to blacklist for thumbnail caching]" \
+   "(--update-cache)--update-cache[update the thumbnail cache and exit]" \
+   "(--assume-files)--assume-files[skip directory traversal]" \
    "(--bar)--bar[enable statusbar]" \
    '*:files:_files' \

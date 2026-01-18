@@ -1,6 +1,6 @@
 # Zsh
 
-Adds completion for zsh for [nsxiv **v33**](https://codeberg.org/nsxiv/nsxiv/src/tag/v33).
+Adds completion for zsh for [nsxiv **v34**](https://codeberg.org/nsxiv/nsxiv/src/tag/v34).
 
 ## Installation
 
